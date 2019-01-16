@@ -2,6 +2,8 @@ package jp.jyn.jbukkitlib.util.updater;
 
 import org.junit.Test;
 
+import java.util.stream.Stream;
+
 import static org.junit.Assert.*;
 
 public class GitHubReleaseCheckerTest {
@@ -11,12 +13,14 @@ public class GitHubReleaseCheckerTest {
         // https://github.com/HimaJyun/Zabbigot
         UpdateChecker checker = new GitHubReleaseChecker("HimaJyun", "Zabbigot");
         UpdateChecker.LatestVersion latestVersion = checker.callEx();
-        System.out.println(getClass());
-        System.out.println(latestVersion.version);
-        System.out.println(latestVersion.url);
-        System.out.println(latestVersion.release);
-        System.out.println(latestVersion.description);
-        System.out.println();
+        Stream.of(
+            getClass().toString(),
+            latestVersion.version,
+            latestVersion.url,
+            latestVersion.release,
+            latestVersion.description,
+            ""
+        ).forEach(System.out::println);
 
         // cache test
         assertSame(latestVersion, checker.callEx());
