@@ -17,7 +17,7 @@ public class JBukkitLib {
     /**
      * Build time
      */
-    public final static OffsetDateTime BUILDTIME;
+    public final static OffsetDateTime BUILD_TIME;
     /**
      * Bukkit API update
      */
@@ -50,8 +50,8 @@ public class JBukkitLib {
         NAME = properties.getProperty("name", "JBukkitLib");
         VERSION = properties.getProperty("version", "Unknown");
 
-        BUILDTIME = OffsetDateTime.parse(
-            properties.getProperty("buildtime", "1970-01-01T00:00:00+0000"),
+        BUILD_TIME = OffsetDateTime.parse(
+            properties.getProperty("build.time", "1970-01-01T00:00:00+0000"),
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
         );
 
