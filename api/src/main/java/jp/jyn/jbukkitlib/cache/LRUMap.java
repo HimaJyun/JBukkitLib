@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * <p>LRU Map</p>
- * <p>Note: Not thread safe</p>
+ * <p>Note: Non thread-safe</p>
  *
  * @param <K> Key type
  * @param <V> Value type

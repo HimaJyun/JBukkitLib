@@ -15,15 +15,15 @@ import java.util.function.Function;
  * @param <K> Key
  * @param <V> Value
  */
-public class NoOpMap<K, V> implements Map<K, V> {
-    private final static NoOpMap instance = new NoOpMap();
+public class ZeroMap<K, V> implements Map<K, V> {
+    private final static ZeroMap instance = new ZeroMap();
 
     @SuppressWarnings("unchecked")
-    public static <K, V> NoOpMap<K, V> getInstance() {
-        return (NoOpMap<K, V>) instance;
+    public static <K, V> ZeroMap<K, V> getInstance() {
+        return (ZeroMap<K, V>) instance;
     }
 
-    private NoOpMap() { }
+    private ZeroMap() { }
 
     @Override
     public int size() {

@@ -4,26 +4,66 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * <p>Lazy Initializer</p>
- * <p>Note: Not thread safe</p>
+ * Lazy Initializer
  *
- * @param <T> Type
+ * @param <E> the type of elements held in this lazy
  */
-public class Lazy<T> {
-    private T value = null;
+@FunctionalInterface
+public interface Lazy<E> {
+    /**
+     * Get Object
+     *
+     * @return object
+     */
+    E get();
 
-    private Supplier<T> initializer;
+    /**
+     * Non thread-safe Lazy
+     *
+     * @param <E> the type of elements held in this lazy
+     */
+    class Simple<E> implements Lazy<E> {
+        private Supplier<E> initializer;
+        private E value = null;
 
-    public Lazy(Supplier<T> initializer) throws NullPointerException {
-        this.initializer = Objects.requireNonNull(initializer);
-    }
-
-    public T get() {
-        if (value == null) {
-            value = initializer.get();
-            initializer = null;
+        public Simple(Supplier<E> initializer) {
+            this.initializer = Objects.requireNonNull(initializer);
         }
 
-        return value;
+        public E get() {
+            if (value == null) {
+                value = initializer.get();
+                initializer = null;
+            }
+
+            return value;
+        }
+    }
+
+    /**
+     * Thread-safe Lazy
+     *
+     * @param <E> the type of elements held in this lazy
+     */
+    class ThreadSafe<E> implements Lazy<E> {
+        private Supplier<E> initializer;
+        private volatile E value = null;
+
+        public ThreadSafe(Supplier<E> initializer) {
+            this.initializer = Objects.requireNonNull(initializer);
+        }
+
+        public E get() {
+            if (value == null) {
+                synchronized (this) {
+                    if (value == null) {
+                        value = initializer.get();
+                        initializer = null;
+                    }
+                }
+            }
+
+            return value;
+        }
     }
 }
