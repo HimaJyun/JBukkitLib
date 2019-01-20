@@ -32,7 +32,7 @@ public class GitHubReleaseChecker implements UpdateChecker {
             return cache;
         }
         if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-            throw new IOException(String.format("HTTP %d %s", connection.getResponseCode(), connection.getResponseMessage()));
+            throw new HttpNotOKException(connection.getResponseCode(), connection.getResponseMessage());
         }
 
         try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
