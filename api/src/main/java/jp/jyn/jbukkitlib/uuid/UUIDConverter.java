@@ -24,6 +24,8 @@ import java.util.concurrent.Callable;
  */
 public class UUIDConverter {
 
+    private UUIDConverter() {}
+
     /**
      * UUID to Name Converter
      */
