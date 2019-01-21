@@ -47,9 +47,6 @@ It is recommended to "relocation" to prevent conflicts with different versions i
                             <relocation>
                                 <pattern>jp.jyn.jbukkitlib</pattern>
                                 <shadedPattern>com.example.jbukkitlib</shadedPattern>
-                                <includes>
-                                    <include>jp.jyn.jbukkitlib.*</include>
-                                </includes>
                             </relocation>
                         </relocations>
                     </configuration>

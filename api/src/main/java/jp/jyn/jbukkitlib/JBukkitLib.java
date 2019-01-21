@@ -45,7 +45,9 @@ public class JBukkitLib {
             if (in != null) {
                 properties.load(in);
             }
-        } catch (IOException ignore) { }
+        } catch (IOException ignore) {
+            // Hint: Execution of "/reload" will prevent resources from being acquired.
+        }
 
         NAME = properties.getProperty("name", "JBukkitLib");
         VERSION = properties.getProperty("version", "Unknown");

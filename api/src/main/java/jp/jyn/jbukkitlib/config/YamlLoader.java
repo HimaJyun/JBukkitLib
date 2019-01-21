@@ -17,20 +17,18 @@ public class YamlLoader {
     private final String file;
     private final Plugin plugin;
 
-    YamlLoader(Plugin plugin) {
+    public YamlLoader(Plugin plugin) {
         this(plugin, "config.yml");
     }
 
-    YamlLoader(Plugin plugin, String fileName) {
+    public YamlLoader(Plugin plugin, String fileName) {
         this.plugin = plugin;
         this.file = fileName;
-        configFile = new File(plugin.getDataFolder(), file);
+        this.configFile = new File(plugin.getDataFolder(), file);
     }
 
     public void saveDefaultConfig() {
-        if (!configFile.exists()) {
-            plugin.saveResource(file, false);
-        }
+        plugin.saveResource(file, false);
     }
 
     public FileConfiguration getConfig() {

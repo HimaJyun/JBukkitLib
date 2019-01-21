@@ -20,7 +20,6 @@ public class ActionBarSender {
 
     /**
      * <p>Init ActionBarSender</p>
-     * <p>Note: It is necessary to initialize after starting Bukkit.</p>
      */
     public ActionBarSender() {
         String[] tmpVersion = Bukkit.getServer().getClass().getPackage().getName().split("\\.");
