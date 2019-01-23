@@ -1,5 +1,6 @@
 package jp.jyn.jbukkitlib.uuid;
 
+import jp.jyn.jbukkitlib.JBukkitLib;
 import jp.jyn.jbukkitlib.cache.CacheFactory;
 import jp.jyn.jbukkitlib.util.BukkitCompletableFuture;
 import org.bukkit.Bukkit;
@@ -48,6 +49,7 @@ public class UUIDRegistry {
 
     public UUIDRegistry(Plugin plugin, CacheFactory cache) {
         this(plugin, cache, Executors.newSingleThreadExecutor());
+        this.executor.submit(() -> Thread.currentThread().setName(String.format("%s-%s UUIDRegistry", plugin.getName(), JBukkitLib.NAME)));
     }
 
     /**
@@ -59,6 +61,7 @@ public class UUIDRegistry {
      */
     @SuppressWarnings("unchecked")
     public static UUIDRegistry getSharedCacheRegistry(Plugin plugin, ExecutorService executor) {
+        // Hint: If "jp.jyn.jbukkitlib" is specified, it may be rewritten on relocation.
         final String KEY = "jbukkitlib.UUIDRegistry#";
         final BiFunction<String, Supplier<Object>, Object> getProperty = (key, supplier) -> {
             Object result = System.getProperties().get(key);
@@ -81,6 +84,7 @@ public class UUIDRegistry {
             uuidToNameCache = (Map<UUID, Optional<String>>) getProperty.apply(KEY + "uuidToNameCache", mapSupplier);
             if (executor == null) {
                 executor = (ExecutorService) getProperty.apply(KEY + "executor", Executors::newSingleThreadExecutor);
+                executor.submit(() -> Thread.currentThread().setName(String.format("%s Shared-UUIDRegistry", JBukkitLib.NAME))); // set thread name.
             }
         }
 
