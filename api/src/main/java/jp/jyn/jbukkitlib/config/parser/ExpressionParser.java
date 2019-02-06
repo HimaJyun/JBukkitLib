@@ -2,8 +2,8 @@ package jp.jyn.jbukkitlib.config.parser;
 
 import jp.jyn.jbukkitlib.util.XorShift;
 
-import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.function.DoubleBinaryOperator;
@@ -21,6 +21,10 @@ public class ExpressionParser {
         this.node = node;
     }
 
+    public static ExpressionParser parse(CharSequence expression) {
+        return new ExpressionParser(expression);
+    }
+
     public double calc(Map<String, Double> variable) {
         return node.calc(variable);
     }
@@ -34,7 +38,7 @@ public class ExpressionParser {
     }
 
     private static Node expr(CharSequence expression) {
-        Queue<String> exp = parse(expression);
+        Queue<String> exp = exprQueue(expression);
 
         Node last = term(exp);
         while (true) {
@@ -181,12 +185,14 @@ public class ExpressionParser {
         }
     }
 
-    private static Queue<String> parse(CharSequence expression) {
-        Queue<String> exp = new ArrayDeque<>();
+    private static Queue<String> exprQueue(CharSequence expression) {
+        Queue<String> exp = new LinkedList<>();
         int nest = 0;
 
         StringBuilder buf = new StringBuilder();
-        for (char c : expression.toString().toCharArray()) {
+        for (int i = 0; i < expression.length(); i++) {
+            char c = expression.charAt(i);
+
             if (nest > 0) {
                 nest += nest(c);
                 buf.append(c);

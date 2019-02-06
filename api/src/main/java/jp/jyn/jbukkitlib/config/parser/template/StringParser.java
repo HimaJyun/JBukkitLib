@@ -95,7 +95,9 @@ public class StringParser implements TemplateParser {
         int nest = 0;
         boolean escape = false;
 
-        for (char c : sequence.toString().toCharArray()) {
+        for (int i = 0; i < sequence.length(); i++) {
+            char c = sequence.charAt(i);
+
             if (escape) {
                 exp.add(buf.append(c).toString());
                 buf.setLength(0);
