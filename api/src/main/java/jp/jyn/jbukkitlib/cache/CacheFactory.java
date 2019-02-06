@@ -39,7 +39,7 @@ public interface CacheFactory {
         public final static CacheFactory DISABLE = new CacheFactory() {
             @Override
             public <K, V> Map<K, V> create(boolean concurrency) throws UnsupportedOperationException {
-                return ZeroMap.getInstance();
+                return NoOpMap.getInstance();
             }
         };
         /**
