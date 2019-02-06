@@ -18,6 +18,24 @@ public interface Lazy<E> {
     E get();
 
     /**
+     * not Lazy
+     *
+     * @param <E> the type of elements held in this lazy
+     */
+    class Computed<E> implements Lazy<E> {
+        private final E value;
+
+        public Computed(E value) {
+            this.value = value;
+        }
+
+        @Override
+        public E get() {
+            return value;
+        }
+    }
+
+    /**
      * Non thread-safe Lazy
      *
      * @param <E> the type of elements held in this lazy
