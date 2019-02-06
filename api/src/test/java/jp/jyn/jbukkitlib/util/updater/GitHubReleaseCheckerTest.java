@@ -1,5 +1,6 @@
 package jp.jyn.jbukkitlib.util.updater;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.stream.Stream;
@@ -8,6 +9,7 @@ import static org.junit.Assert.*;
 
 public class GitHubReleaseCheckerTest {
 
+    @Ignore
     @Test
     public void call() {
         // https://github.com/HimaJyun/Zabbigot

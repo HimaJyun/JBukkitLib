@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.DoubleConsumer;
 import java.util.function.DoubleFunction;
+import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 
 public class CacheFactoryTest {
@@ -32,29 +32,27 @@ public class CacheFactoryTest {
         );
         DoubleFunction<IntFunction<Map<Integer, Integer>>> guava = max -> i -> CacheBuilder.newBuilder()
             .maximumSize((int) (i * max))
-            .initialCapacity(i)
+            .initialCapacity((int) (i * max))
             .<Integer, Integer>build()
             .asMap();
 
-        IntFunction<IntFunction<DoubleConsumer>> exec = thread -> ratio -> lru -> {
-            System.out.printf("=== Thread %d, Write %d%%, MaxSize %d%% ===%n", thread, ratio, (int) (lru * 100));
+        IntFunction<IntConsumer> exec = thread -> ratio -> {
+            System.out.printf("=== Thread %d, Write %d%% ===%n", thread, ratio);
             System.out.printf("Time: %dns%n", benchmark(thread, ratio, dangerHashMap));
             System.out.printf("Time: %dns%n", benchmark(thread, ratio, concurrentHashMap));
-            System.out.printf("Time: %dns%n", benchmark(thread, ratio, dangerLRU.apply(lru)));
-            System.out.printf("Time: %dns%n", benchmark(thread, ratio, synchronizedLRU.apply(lru)));
-            System.out.printf("Time: %dns%n", benchmark(thread, ratio, guava.apply(lru)));
+            System.out.printf("Time: %dns%n", benchmark(thread, ratio, dangerLRU.apply(0.5d)));
+            System.out.printf("Time: %dns%n", benchmark(thread, ratio, synchronizedLRU.apply(0.5d)));
+            System.out.printf("Time: %dns%n", benchmark(thread, ratio, guava.apply(0.5d)));
             System.out.println();
         };
 
         System.out.println("=== warm up ===");
-        exec.apply(2).apply(50).accept(0.5d);
+        exec.apply(2).accept(50);
         System.out.println("=== warm up ===");
 
         for (int thread : new int[]{1, 2, 4, 8, 16}) {
             for (int ratio : new int[]{10, 30, 50, 80, 100}) {
-                for (double lru : new double[]{1.0d, 0.8d, 0.5d, 0.3d, 0.1d}) {
-                    exec.apply(thread).apply(ratio).accept(lru);
-                }
+                exec.apply(thread).accept(ratio);
             }
         }
     }
@@ -67,12 +65,13 @@ public class CacheFactoryTest {
         final List<Runner> runners = new ArrayList<>(concurrency);
         final List<Future<?>> futures = new ArrayList<>(concurrency);
         for (int i = 0; i < concurrency; i++) {
-            runners.add(new Runner(LOOP, ratio, map));
+            runners.add(new Runner(LOOP / concurrency, ratio, map));
         }
 
         // start
         System.out.printf("%s%n", map.getClass().toString());
 
+        System.gc();
         long start, end;
         start = System.nanoTime();
         for (Runner runner : runners) {

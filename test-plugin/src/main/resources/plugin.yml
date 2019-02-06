@@ -1,0 +1,16 @@
+main: "jp.jyn.test.Main"
+name: "JBukkitLib-Test"
+version: "${project.version}"
+website: "${project.url}"
+author: "HimaJyun( https://jyn.jp/ )"
+description: "${project.description}"
+api-version: 1.13
+
+commands:
+    test:
+        description: "Test"
+        permission: jbukkitlib-test.test
+
+permissions:
+    jbukkitlib-test.test:
+        default: op
