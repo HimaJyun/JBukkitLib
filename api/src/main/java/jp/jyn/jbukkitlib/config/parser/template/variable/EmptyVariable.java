@@ -2,9 +2,17 @@ package jp.jyn.jbukkitlib.config.parser.template.variable;
 
 import java.util.function.Supplier;
 
+/**
+ * Empty variable
+ */
 public class EmptyVariable implements TemplateVariable {
     private final static EmptyVariable instance = new EmptyVariable();
 
+    /**
+     * get instance
+     *
+     * @return instance
+     */
     public static EmptyVariable getInstance() { return instance; }
 
     private EmptyVariable() {}

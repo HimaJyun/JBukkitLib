@@ -11,26 +11,48 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 
+/**
+ * Yaml loader that can specify file name
+ */
 public class YamlLoader {
     private FileConfiguration config = null;
     private final File configFile;
     private final String file;
     private final Plugin plugin;
 
+    /**
+     * YamlLoader using config.yml
+     *
+     * @param plugin plugin
+     */
     public YamlLoader(Plugin plugin) {
         this(plugin, "config.yml");
     }
 
+    /**
+     * YamlLoader to use the specified file
+     *
+     * @param plugin   plugin
+     * @param fileName file name.
+     */
     public YamlLoader(Plugin plugin, String fileName) {
         this.plugin = plugin;
         this.file = fileName;
         this.configFile = new File(plugin.getDataFolder(), file);
     }
 
+    /**
+     * {@link Plugin#saveDefaultConfig()}
+     */
     public void saveDefaultConfig() {
         plugin.saveResource(file, false);
     }
 
+    /**
+     * {@link Plugin#getConfig()}
+     *
+     * @return FileConfiguration
+     */
     public FileConfiguration getConfig() {
         if (config == null) {
             reloadConfig();
@@ -38,6 +60,9 @@ public class YamlLoader {
         return config;
     }
 
+    /**
+     * {@link Plugin#saveConfig()}
+     */
     public void saveConfig() {
         if (config == null) {
             return;
@@ -49,6 +74,9 @@ public class YamlLoader {
         }
     }
 
+    /**
+     * {@link Plugin#reloadConfig()}
+     */
     public void reloadConfig() {
         config = YamlConfiguration.loadConfiguration(configFile);
 

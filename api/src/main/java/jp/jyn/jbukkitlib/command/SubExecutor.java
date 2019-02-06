@@ -14,6 +14,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Executor for invoking subcommand.
+ */
 public class SubExecutor implements CommandExecutor, TabCompleter {
     private final Map<String, SubCommand> commands;
     private final String defaultCommand;
@@ -92,39 +95,82 @@ public class SubExecutor implements CommandExecutor, TabCompleter {
         return str.toLowerCase(Locale.ENGLISH);
     }
 
+    /**
+     * SubExecutor Builder
+     */
     public static class Builder {
         private final Map<String, SubCommand> commands = new LinkedHashMap<>();
 
         private String defaultCommand = "";
         private ErrorExecutor errorExecutor = error -> false;
 
+        /**
+         * init
+         *
+         * @return for method chain
+         */
         public static Builder init() {
             return new Builder();
         }
 
+        /**
+         * put command
+         *
+         * @param key     command name
+         * @param command subcommand
+         * @return for method chain
+         */
         public Builder putCommand(String key, SubCommand command) {
             commands.put(lower(key), command);
             return this;
         }
 
+        /**
+         * Get sub commands.
+         *
+         * @return SubCommand map(unmodifiable)
+         */
         public Map<String, SubCommand> getSubCommands() {
             return Collections.unmodifiableMap(commands);
         }
 
+        /**
+         * Default command to execute when no argument is specified
+         *
+         * @param defaultCommand default command
+         * @return for method chain
+         */
         public Builder setDefaultCommand(String defaultCommand) {
             this.defaultCommand = defaultCommand;
             return this;
         }
 
+        /**
+         * Error handling executed when an error occurs
+         *
+         * @param errorExecutor error handler
+         * @return for method chain
+         */
         public Builder setErrorExecutor(ErrorExecutor errorExecutor) {
             this.errorExecutor = errorExecutor;
             return this;
         }
 
+        /**
+         * Build SubExecutor
+         *
+         * @return SubExecutor
+         */
         public SubExecutor build() {
             return new SubExecutor(this);
         }
 
+        /**
+         * Register SubExecutor in Executor and TabCompleter of the specified command.
+         *
+         * @param command target command.
+         * @return Registered SubExecutor
+         */
         public SubExecutor register(PluginCommand command) {
             SubExecutor executor = new SubExecutor(this);
             command.setExecutor(executor);

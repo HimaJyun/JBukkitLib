@@ -9,15 +9,32 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+/**
+ * EmptyDeque
+ *
+ * @param <E> Element type
+ */
 public class EmptyDeque<E> implements Deque<E> {
     private final static EmptyDeque instanceIgnore = new EmptyDeque(false);
     private final static EmptyDeque instanceException = new EmptyDeque(true);
 
+    /**
+     * Ignore when adding values
+     *
+     * @param <E> Element type
+     * @return Empty deque
+     */
     @SuppressWarnings("unchecked")
     public static <E> EmptyDeque<E> getInstanceIgnore() {
         return (EmptyDeque<E>) instanceIgnore;
     }
 
+    /**
+     * Raise an exception when adding a value
+     *
+     * @param <E> Element type
+     * @return Empty deque
+     */
     @SuppressWarnings("unchecked")
     public static <E> EmptyDeque<E> getInstanceException() {
         return (EmptyDeque<E>) instanceException;

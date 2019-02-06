@@ -50,10 +50,21 @@ public class ActionBarSender {
         }
     }
 
+    /**
+     * Reset action bar
+     *
+     * @param player target player
+     */
     public void reset(Player player) {
         send(player, "");
     }
 
+    /**
+     * Send action bar
+     *
+     * @param player  target player
+     * @param message message
+     */
     public void send(Player player, String message) {
         try {
             Object chat = chatSerialize("{\"text\":\"" + message + "\"}");

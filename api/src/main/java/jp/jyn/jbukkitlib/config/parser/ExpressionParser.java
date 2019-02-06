@@ -9,6 +9,11 @@ import java.util.Queue;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
+/**
+ * <p>Arithmetic expression parser.</p>
+ * <p>Priority: (), function -&gt; *, /, %, ^ -&gt; +, -</p>
+ * <p>Available functions: abs, sin, cos, tan, round, floor, ceil, log, negative, random, min, max</p>
+ */
 public class ExpressionParser {
     private final Node node;
 
@@ -21,18 +26,42 @@ public class ExpressionParser {
         this.node = node;
     }
 
+    /**
+     * Parsing the expression
+     *
+     * @param expression expression
+     * @return parsed expression
+     */
     public static ExpressionParser parse(CharSequence expression) {
         return new ExpressionParser(expression);
     }
 
+    /**
+     * Calculate using variables
+     *
+     * @param variable Variable map
+     * @return result
+     */
     public double calc(Map<String, Double> variable) {
         return node.calc(variable);
     }
 
+    /**
+     * Calculate using single variables
+     *
+     * @param key   Variable key
+     * @param value Variable value
+     * @return result
+     */
     public double calc(String key, Double value) {
         return calc(Collections.singletonMap(key, value));
     }
 
+    /**
+     * Calculate
+     *
+     * @return result
+     */
     public double calc() {
         return calc(Collections.emptyMap());
     }

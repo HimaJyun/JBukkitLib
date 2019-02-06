@@ -3,6 +3,11 @@ package jp.jyn.jbukkitlib.util;
 import java.util.AbstractMap;
 import java.util.Map;
 
+/**
+ * Simple pair
+ * @param <K> Type 1
+ * @param <V> Type 2
+ */
 public interface Pair<K, V> {
     /**
      * Get key

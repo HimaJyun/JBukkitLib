@@ -12,8 +12,8 @@ public class GitHubReleaseCheckerTest {
     @Ignore
     @Test
     public void call() {
-        // https://github.com/HimaJyun/Zabbigot
-        UpdateChecker checker = new GitHubReleaseChecker("HimaJyun", "Zabbigot");
+        // https://github.com/HimaJyun/JBukkitLib
+        UpdateChecker checker = new GitHubReleaseChecker("HimaJyun", "JBukkitLib");
         UpdateChecker.LatestVersion latestVersion = checker.callEx();
         Stream.of(
             getClass().toString(),

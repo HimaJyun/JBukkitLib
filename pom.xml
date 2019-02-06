@@ -17,7 +17,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <spigot.version>1.13.2-R0.1-SNAPSHOT</spigot.version>
-        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <developers>
@@ -40,6 +39,14 @@
         <system>GitHub</system>
         <url>https://github.com/HimaJyun/JBukkitLib/issues</url>
     </issueManagement>
+
+    <distributionManagement>
+        <repository>
+            <id>internal.repos</id>
+            <name>internal repo</name>
+            <url>file://${project.basedir}/mvn-repo</url>
+        </repository>
+    </distributionManagement>
 
     <repositories>
         <repository>

@@ -15,9 +15,15 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.function.BiFunction;
 
+/**
+ * Subcommand class
+ */
 public abstract class SubCommand implements CommandExecutor, TabCompleter {
     private final static Deque<String> EMPTY_DEQUE = EmptyDeque.getInstanceException();
 
+    /**
+     * Execution result
+     */
     public enum Result {
         OK, ERROR,
         PLAYER_ONLY, DONT_HAVE_PERMISSION, MISSING_ARGUMENT,
@@ -29,6 +35,13 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
         return execCommand(sender, args) == Result.OK;
     }
 
+    /**
+     * Execute the command. The check is executed as necessary.
+     *
+     * @param sender Sender
+     * @param args   args
+     * @return Result
+     */
     public final Result execCommand(CommandSender sender, String... args) {
         boolean isPlayer = sender instanceof Player;
         // check player only mode.
@@ -55,10 +68,26 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /**
+     * <p>Process when the player executes a command</p>
+     * <p>When not overwriting this method, the processing for the console is used.</p>
+     *
+     * @param sender Player
+     * @param args   args
+     * @return Result
+     */
     protected Result execCommand(Player sender, Queue<String> args) {
         return execCommand((CommandSender) sender, args);
     }
 
+    /**
+     * <p>Processing when command is executed from the console</p>
+     * <p>If the processing for the player is not implemented, it is also called by the command execution by the player.</p>
+     *
+     * @param sender Sender
+     * @param args   args
+     * @return Result
+     */
     protected Result execCommand(CommandSender sender, Queue<String> args) {
         return Result.NOT_IMPLEMENTED;
     }
@@ -85,25 +114,57 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
         return deque;
     }
 
+    /**
+     * Is this command exclusively for players?
+     *
+     * @return If true then for players only
+     */
     protected boolean isPlayerOnly() {
         return false;
     }
 
+    /**
+     * Required Permissions
+     *
+     * @return Permission
+     */
     protected String requirePermission() {
         return null;
     }
 
+    /**
+     * The minimum number of arguments required for execution
+     *
+     * @return minimum args.
+     */
     protected int minimumArgs() {
         return 0;
     }
 
+    /**
+     * Get command help
+     *
+     * @return help
+     */
     public CommandHelp getHelp() {
         return null;
     }
 
+    /**
+     * Command Help.
+     */
     public static class CommandHelp {
+        /**
+         * Command usage.
+         */
         public final String usage;
+        /**
+         * Command description.
+         */
         public final String description;
+        /**
+         * Command example.
+         */
         public final String[] example;
 
         public CommandHelp(String usage, String description, String... example) {
@@ -113,10 +174,22 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /**
+     * Initialize player specific commands using lambda.
+     *
+     * @param playerCommand Command lambda.
+     * @return SubCommand
+     */
     public static SubCommand withPlayerCommand(BiFunction<Player, Queue<String>, Result> playerCommand) {
         return Lambda.init().setPlayerOnly(true).setPlayerCommand(playerCommand).build();
     }
 
+    /**
+     * Initialize command with lambda.
+     *
+     * @param command Command
+     * @return SubCommand
+     */
     public static SubCommand withCommand(BiFunction<CommandSender, Queue<String>, Result> command) {
         return Lambda.init().setCommand(command).build();
     }

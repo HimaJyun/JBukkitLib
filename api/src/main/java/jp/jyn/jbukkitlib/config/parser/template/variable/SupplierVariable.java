@@ -4,9 +4,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+/**
+ * Lazy evaluation variable with Supplier
+ */
 public class SupplierVariable implements TemplateVariable {
     private final Map<String, Supplier<String>> variable = new HashMap<>();
 
+    /**
+     * Create new instance.
+     *
+     * @return for method chain.
+     */
     public static SupplierVariable init() {
         return new SupplierVariable();
     }

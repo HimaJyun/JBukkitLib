@@ -9,6 +9,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+/**
+ * <p>Simple template parser</p>
+ * <p>Available format:</p>
+ * <ul>
+ * <li>{variable} -&gt; variable</li>
+ * <li>&amp; -&gt; escape</li>
+ * <li>&amp;(char) -&gt; ColorCode</li>
+ * <li>&amp;&amp; -&gt; &amp;</li>
+ * </ul>
+ */
 public class StringParser implements TemplateParser {
     private final static ThreadLocal<StringBuilder> localBuilder = ThreadLocal.withInitial(StringBuilder::new);
     private final List<Node> nodes;
@@ -17,6 +27,12 @@ public class StringParser implements TemplateParser {
         this.nodes = nodes;
     }
 
+    /**
+     * Parses a string.
+     *
+     * @param sequence Char sequence
+     * @return Parsed value.
+     */
     public static TemplateParser parse(CharSequence sequence) {
         Queue<String> expr = exprQueue(sequence);
         List<Node> nodes = new ArrayList<>(expr.size());

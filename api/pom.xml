@@ -10,15 +10,12 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>JBukkitLib</artifactId>
     <url>${project.parent.url}</url>
-    <properties>
-        <maven.deploy.skip>false</maven.deploy.skip>
-    </properties>
 
     <distributionManagement>
         <repository>
             <id>internal.repos</id>
             <name>internal repo</name>
-            <url>file://${project.basedir}/mvn-repo</url>
+            <url>file://${project.basedir}/../mvn-repo</url>
         </repository>
     </distributionManagement>
 

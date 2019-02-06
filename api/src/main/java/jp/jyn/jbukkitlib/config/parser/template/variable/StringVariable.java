@@ -4,9 +4,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+/**
+ * Simple string variable.
+ */
 public class StringVariable implements TemplateVariable {
     private final Map<String, String> variable = new HashMap<>();
 
+    /**
+     * Create new instance.
+     *
+     * @return for method chain.
+     */
     public static StringVariable init() {
         return new StringVariable();
     }
@@ -17,6 +25,14 @@ public class StringVariable implements TemplateVariable {
         return this;
     }
 
+    /**
+     * <p>Add variable.</p>
+     * <p>Note: Suppliers are executed immediately.</p>
+     *
+     * @param key   variable name
+     * @param value variable value
+     * @return for method chain
+     */
     @Override
     public StringVariable put(String key, Supplier<String> value) {
         variable.put(key, value.get());

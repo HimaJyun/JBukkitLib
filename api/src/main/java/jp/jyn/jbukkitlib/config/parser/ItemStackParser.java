@@ -12,8 +12,27 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * <p>ItemStack parser</p>
+ * <p>Available format:</p>
+ * <ul>
+ *     <li>Material</li>
+ *     <li>Material[Enchant]</li>
+ *     <li>Material[Enchant@Level]</li>
+ *     <li>Material[Enchant,Enchant@Level,...]</li>
+ *     <li>Material*Amount</li>
+ *     <li>Material[Enchant]*Amount</li>
+ *     <li>Material[Enchant@Level]*Amount</li>
+ *     <li>Material[Enchant,Enchant@Level,...]*Amount</li>
+ * </ul>
+ */
 public class ItemStackParser {
 
+    /**
+     * Parse ItemStack
+     * @param value String ItemStack
+     * @return ItemStack
+     */
     public static ItemStack parse(CharSequence value) {
         Material material = null;
         int amount = 1;
@@ -81,6 +100,11 @@ public class ItemStackParser {
         return itemStack;
     }
 
+    /**
+     * ItemStack to String
+     * @param itemStack ItemStack
+     * @return Formatted string.
+     */
     public static String toString(ItemStack itemStack) {
         StringBuilder builder = new StringBuilder();
 
@@ -107,6 +131,11 @@ public class ItemStackParser {
         return builder.toString();
     }
 
+    /**
+     * Parse multiple enchants
+     * @param value String enchants
+     * @return Enchants map
+     */
     public static Map<Enchantment, Integer> parseEnchantments(String value) {
         Map<Enchantment, Integer> result = new HashMap<>();
         for (String s : value.split(",")) {
@@ -116,6 +145,11 @@ public class ItemStackParser {
         return result;
     }
 
+    /**
+     * Enchants to string
+     * @param enchantments Enchants map
+     * @return Formatted string.
+     */
     public static String toString(Map<Enchantment, Integer> enchantments) {
         return toString(new StringBuilder(), enchantments).toString();
     }
@@ -139,6 +173,11 @@ public class ItemStackParser {
         return builder;
     }
 
+    /**
+     * Parse single enchant.
+     * @param value String enchant
+     * @return Enchant
+     */
     public static Map.Entry<Enchantment, Integer> parseEnchantment(String value) {
         Enchantment enchantment;
         Integer level = 1;
@@ -156,6 +195,12 @@ public class ItemStackParser {
         return new AbstractMap.SimpleEntry<>(enchantment, level);
     }
 
+    /**
+     * Single enchant to string
+     * @param enchantment enchant
+     * @param level level
+     * @return String enchant
+     */
     public static String toString(Enchantment enchantment, int level) {
         return toString(new StringBuilder(), enchantment, level).toString();
     }
