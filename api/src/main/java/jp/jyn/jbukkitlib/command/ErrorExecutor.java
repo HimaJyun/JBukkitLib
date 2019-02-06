@@ -5,7 +5,11 @@ import org.bukkit.command.CommandSender;
 
 @FunctionalInterface
 public interface ErrorExecutor {
-    enum Cause {ERROR, COMMAND_NOT_FOUND, PLAYER_ONLY, DONT_HAVE_PERMISSION, MISSING_ARGUMENT, UNKNOWN}
+    enum Cause {
+        ERROR, COMMAND_NOT_FOUND,
+        PLAYER_ONLY, DONT_HAVE_PERMISSION, MISSING_ARGUMENT,
+        NOT_IMPLEMENTED, UNKNOWN
+    }
 
     boolean onError(Info error);
 

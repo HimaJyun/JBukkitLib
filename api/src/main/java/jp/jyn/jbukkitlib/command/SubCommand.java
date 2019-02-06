@@ -13,11 +13,16 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.function.BiFunction;
 
 public abstract class SubCommand implements CommandExecutor, TabCompleter {
     private final static Deque<String> EMPTY_DEQUE = EmptyDeque.getInstanceException();
 
-    public enum Result {OK, ERROR, PLAYER_ONLY, DONT_HAVE_PERMISSION, MISSING_ARGUMENT}
+    public enum Result {
+        OK, ERROR,
+        PLAYER_ONLY, DONT_HAVE_PERMISSION, MISSING_ARGUMENT,
+        NOT_IMPLEMENTED
+    }
 
     @Override
     public final boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -55,7 +60,7 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
     }
 
     protected Result execCommand(CommandSender sender, Queue<String> args) {
-        throw new UnsupportedOperationException("This command is not implemented.");
+        return Result.NOT_IMPLEMENTED;
     }
 
     @Override
@@ -96,7 +101,7 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
         return null;
     }
 
-    protected final static class CommandHelp {
+    public static class CommandHelp {
         public final String usage;
         public final String description;
         public final String[] example;
@@ -105,6 +110,113 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
             this.usage = usage;
             this.description = description;
             this.example = example;
+        }
+    }
+
+    public static SubCommand withPlayerCommand(BiFunction<Player, Queue<String>, Result> playerCommand) {
+        return Lambda.init().setPlayerOnly(true).setPlayerCommand(playerCommand).build();
+    }
+
+    public static SubCommand withCommand(BiFunction<CommandSender, Queue<String>, Result> command) {
+        return Lambda.init().setCommand(command).build();
+    }
+
+    public static class Lambda {
+        private BiFunction<Player, Queue<String>, Result> playerCommand = null;
+        private BiFunction<CommandSender, Queue<String>, Result> command = (s, a) -> Result.NOT_IMPLEMENTED;
+        private BiFunction<CommandSender, Deque<String>, List<String>> tabComplete = (s, a) -> Collections.emptyList();
+        private boolean playerOnly = false;
+        private String requirePermission = null;
+        private int minimumArgs = 0;
+        private CommandHelp commandHelp = null;
+
+        public static Lambda init() {
+            return new Lambda();
+        }
+
+        public Lambda setPlayerCommand(BiFunction<Player, Queue<String>, Result> playerCommand) {
+            this.playerCommand = playerCommand;
+            return this;
+        }
+
+        public Lambda setCommand(BiFunction<CommandSender, Queue<String>, Result> command) {
+            this.command = command;
+            return this;
+        }
+
+        public Lambda setTabComplete(BiFunction<CommandSender, Deque<String>, List<String>> tabComplete) {
+            this.tabComplete = tabComplete;
+            return this;
+        }
+
+        public Lambda setPlayerOnly(boolean playerOnly) {
+            this.playerOnly = playerOnly;
+            return this;
+        }
+
+        public Lambda setRequirePermission(String requirePermission) {
+            this.requirePermission = requirePermission;
+            return this;
+        }
+
+        public Lambda setMinimumArgs(int minimumArgs) {
+            this.minimumArgs = minimumArgs;
+            return this;
+        }
+
+        public Lambda setCommandHelp(CommandHelp commandHelp) {
+            this.commandHelp = commandHelp;
+            return this;
+        }
+
+        public SubCommand build() {
+            return new LambdaWrapper(this);
+        }
+    }
+
+    private final static class LambdaWrapper extends SubCommand {
+        private final Lambda lambda;
+
+        public LambdaWrapper(Lambda lambda) {
+            this.lambda = lambda;
+        }
+
+        @Override
+        protected Result execCommand(Player sender, Queue<String> args) {
+            if (lambda.playerCommand == null) {
+                return this.execCommand((CommandSender) sender, args);
+            }
+            return lambda.playerCommand.apply(sender, args);
+        }
+
+        @Override
+        protected Result execCommand(CommandSender sender, Queue<String> args) {
+            return lambda.command.apply(sender, args);
+        }
+
+        @Override
+        protected List<String> execTabComplete(CommandSender sender, Deque<String> args) {
+            return lambda.tabComplete.apply(sender, args);
+        }
+
+        @Override
+        protected boolean isPlayerOnly() {
+            return lambda.playerOnly;
+        }
+
+        @Override
+        protected String requirePermission() {
+            return lambda.requirePermission;
+        }
+
+        @Override
+        protected int minimumArgs() {
+            return lambda.minimumArgs;
+        }
+
+        @Override
+        public CommandHelp getHelp() {
+            return lambda.commandHelp;
         }
     }
 }

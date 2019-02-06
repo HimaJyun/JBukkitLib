@@ -57,6 +57,9 @@ public class SubExecutor implements CommandExecutor, TabCompleter {
             case DONT_HAVE_PERMISSION:
                 cause = ErrorExecutor.Cause.DONT_HAVE_PERMISSION;
                 break;
+            case NOT_IMPLEMENTED:
+                cause = ErrorExecutor.Cause.NOT_IMPLEMENTED;
+                break;
             default:
                 cause = ErrorExecutor.Cause.UNKNOWN;
                 break;
