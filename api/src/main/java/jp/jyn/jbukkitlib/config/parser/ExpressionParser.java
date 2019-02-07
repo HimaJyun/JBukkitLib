@@ -2,7 +2,10 @@ package jp.jyn.jbukkitlib.config.parser;
 
 import jp.jyn.jbukkitlib.util.XorShift;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
@@ -134,6 +137,42 @@ public class ExpressionParser {
         return function(value);
     }
 
+    private final static Map<String, DoubleUnaryOperator> UNARY_FUNCTIONS;
+    private final static Map<String, DoubleBinaryOperator> BINARY_FUNCTIONS;
+
+    static {
+        Map<String, DoubleUnaryOperator> u = new HashMap<>();
+        u.put("abs", Math::abs);
+        u.put("sin", Math::sin);
+        u.put("cos", Math::cos);
+        u.put("tan", Math::tan);
+        u.put("sinh", Math::sinh);
+        u.put("cosh", Math::cosh);
+        u.put("tanh", Math::tanh);
+        u.put("asin", Math::asin);
+        u.put("acos", Math::acos);
+        u.put("atan", Math::atan);
+        u.put("round", Math::round);
+        u.put("floor", Math::floor);
+        u.put("ceil", Math::ceil);
+        u.put("exp", Math::exp);
+        u.put("log", Math::log);
+        u.put("log10", Math::log10);
+        u.put("log1p", Math::log1p);
+        u.put("sqrt", Math::sqrt);
+        u.put("cbrt", Math::cbrt);
+        u.put("signum", Math::signum);
+        u.put("negative", d -> -d);
+        UNARY_FUNCTIONS = Collections.unmodifiableMap(u);
+
+        Map<String, DoubleBinaryOperator> b = new HashMap<>();
+        b.put("min", Math::min);
+        b.put("max", Math::max);
+        b.put("hypot", Math::hypot);
+        b.put("scale", (d, scale) -> BigDecimal.valueOf(d).setScale((int) scale, RoundingMode.DOWN).doubleValue());
+        BINARY_FUNCTIONS = Collections.unmodifiableMap(b);
+    }
+
     private static Node function(String value) {
         // func(123+456) -> func,123+456)
         String[] tmp = value.split("\\(", 2);
@@ -144,35 +183,22 @@ public class ExpressionParser {
             args = args.substring(0, args.length() - 1);
         }
 
-        switch (func) { // UnaryOperator function
-            case "abs":
-                return new UnaryOperatorNode(Math::abs, expr(args));
-            case "sin":
-                return new UnaryOperatorNode(Math::sin, expr(args));
-            case "cos":
-                return new UnaryOperatorNode(Math::cos, expr(args));
-            case "tan":
-                return new UnaryOperatorNode(Math::tan, expr(args));
-            case "round":
-                return new UnaryOperatorNode(Math::round, expr(args));
-            case "floor":
-                return new UnaryOperatorNode(Math::floor, expr(args));
-            case "ceil":
-                return new UnaryOperatorNode(Math::ceil, expr(args));
-            case "log":
-                return new UnaryOperatorNode(Math::log, expr(args));
-            case "negative":
-                return new UnaryOperatorNode(d -> -d, expr(args));
-            case "random": // special
-                return RandomNode.instance;
-            case "min":
-            case "max":
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown function: " + func);
+        // search function.
+        DoubleUnaryOperator unaryOperator = UNARY_FUNCTIONS.get(func);
+        if (unaryOperator != null) {
+            return new UnaryOperatorNode(unaryOperator, expr(args));
         }
 
-        // BinaryOperator function
+        DoubleBinaryOperator binaryOperator = BINARY_FUNCTIONS.get(func);
+        if (binaryOperator == null) {
+            // special
+            if (func.equals("random")) {
+                return RandomNode.instance;
+            }
+            throw new IllegalArgumentException("Unknown function:" + func);
+        }
+
+        // parse left/right expression.
         // need help: How to realize with regex?
         int nest = 0;
         Node left = null;
@@ -192,15 +218,7 @@ public class ExpressionParser {
             throw new IllegalArgumentException("Argument is missing: " + value);
         }
 
-        // double check.
-        switch (func) {
-            case "min":
-                return new BinaryOperatorNode(Math::min, left, right);
-            case "max":
-                return new BinaryOperatorNode(Math::max, left, right);
-            default:
-                throw new IllegalArgumentException("Unknown function: " + func);
-        }
+        return new BinaryOperatorNode(binaryOperator, left, right);
     }
 
     private static int nest(char c) {

@@ -8,6 +8,7 @@ import org.bukkit.command.TabCompleter;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -18,6 +19,18 @@ import java.util.stream.Collectors;
  * Executor for invoking subcommand.
  */
 public class SubExecutor implements CommandExecutor, TabCompleter {
+    private final static Map<SubCommand.Result, ErrorExecutor.Cause> RESULT_CAUSE_MAP;
+
+    static {
+        Map<SubCommand.Result, ErrorExecutor.Cause> m = new EnumMap<>(SubCommand.Result.class);
+        m.put(SubCommand.Result.ERROR, ErrorExecutor.Cause.ERROR);
+        m.put(SubCommand.Result.PLAYER_ONLY, ErrorExecutor.Cause.PLAYER_ONLY);
+        m.put(SubCommand.Result.MISSING_ARGUMENT, ErrorExecutor.Cause.MISSING_ARGUMENT);
+        m.put(SubCommand.Result.DONT_HAVE_PERMISSION, ErrorExecutor.Cause.DONT_HAVE_PERMISSION);
+        m.put(SubCommand.Result.NOT_IMPLEMENTED, ErrorExecutor.Cause.NOT_IMPLEMENTED);
+        RESULT_CAUSE_MAP = Collections.unmodifiableMap(m);
+    }
+
     private final Map<String, SubCommand> commands;
     private final String defaultCommand;
     private final ErrorExecutor errorExecutor;
@@ -53,29 +66,12 @@ public class SubExecutor implements CommandExecutor, TabCompleter {
             ));
         }
 
-        ErrorExecutor.Cause cause;
-        switch (sub.execCommand(sender, args)) {
-            case OK:
-                return true;
-            case ERROR:
-                cause = ErrorExecutor.Cause.ERROR;
-                break;
-            case PLAYER_ONLY:
-                cause = ErrorExecutor.Cause.PLAYER_ONLY;
-                break;
-            case MISSING_ARGUMENT:
-                cause = ErrorExecutor.Cause.MISSING_ARGUMENT;
-                break;
-            case DONT_HAVE_PERMISSION:
-                cause = ErrorExecutor.Cause.DONT_HAVE_PERMISSION;
-                break;
-            case NOT_IMPLEMENTED:
-                cause = ErrorExecutor.Cause.NOT_IMPLEMENTED;
-                break;
-            default:
-                cause = ErrorExecutor.Cause.UNKNOWN;
-                break;
+        SubCommand.Result result = sub.execCommand(sender, args);
+        if (result == SubCommand.Result.OK) {
+            return true;
         }
+
+        ErrorExecutor.Cause cause = RESULT_CAUSE_MAP.getOrDefault(result, ErrorExecutor.Cause.UNKNOWN);
         return errorExecutor.onError(new ErrorExecutor.Info(cause, cmd, sub, sender, command, label, args));
     }
 
