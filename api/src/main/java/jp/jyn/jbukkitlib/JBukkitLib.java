@@ -9,6 +9,9 @@ import java.util.Properties;
 public class JBukkitLib {
     private JBukkitLib() { }
 
+    /**
+     * This library name
+     */
     public final static String NAME;
     /**
      * Version
@@ -19,7 +22,7 @@ public class JBukkitLib {
      */
     public final static OffsetDateTime BUILD_TIME;
     /**
-     * Bukkit API update
+     * Bukkit API version
      */
     public final static String API_VERSION;
     /**

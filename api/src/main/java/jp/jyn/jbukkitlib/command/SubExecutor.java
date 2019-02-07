@@ -22,22 +22,31 @@ public class SubExecutor implements CommandExecutor, TabCompleter {
     private final String defaultCommand;
     private final ErrorExecutor errorExecutor;
 
+    // defaultArgs[0] is not final
+    private final String[] defaultArgs;
+
     private SubExecutor(Builder builder) {
         this.commands = Collections.unmodifiableMap(builder.commands);
         this.defaultCommand = builder.defaultCommand;
         this.errorExecutor = builder.errorExecutor;
+
+        this.defaultArgs = new String[(defaultCommand == null ? 0 : 1)];
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         String cmd = defaultCommand;
         if (args.length == 0) {
-            args = new String[]{defaultCommand};
+            // eg: default = help -> /cmd == /cmd help
+            args = defaultArgs;
+            if (args.length != 0) {
+                args[0] = defaultCommand;
+            }
         } else {
             cmd = lower(args[0]);
         }
 
-        SubCommand sub = commands.get(cmd);
+        SubCommand sub = (cmd == null ? null : commands.get(cmd));
         if (sub == null) {
             return errorExecutor.onError(new ErrorExecutor.Info(
                 ErrorExecutor.Cause.COMMAND_NOT_FOUND, cmd, null, sender, command, label, args
@@ -101,7 +110,7 @@ public class SubExecutor implements CommandExecutor, TabCompleter {
     public static class Builder {
         private final Map<String, SubCommand> commands = new LinkedHashMap<>();
 
-        private String defaultCommand = "";
+        private String defaultCommand = null;
         private ErrorExecutor errorExecutor = error -> false;
 
         /**

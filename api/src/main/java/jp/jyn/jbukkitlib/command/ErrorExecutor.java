@@ -34,7 +34,8 @@ public interface ErrorExecutor {
          */
         public final Cause cause;
         /**
-         * The subcommand you attempted to execute
+         * <p>The subcommand you attempted to execute</p>
+         * <p>Note: It is null if it is called with no argument specified when the default command is not set</p>
          */
         public final String subArgs;
         /**
