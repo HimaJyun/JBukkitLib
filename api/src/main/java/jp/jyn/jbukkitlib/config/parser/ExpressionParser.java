@@ -22,11 +22,15 @@ public class ExpressionParser {
 
     public ExpressionParser(CharSequence expression) {
         Node node = expr(expression);
-        if (node.isImmutable()) {
-            // It can be calculated in advance.
-            node = new NumberNode(node.calc(Collections.emptyMap()));
+        this.node = preCalc(node);
+    }
+
+    private static Node preCalc(Node node) {
+        // It can be calculated in advance.
+        if (!node.isImmutable() || node instanceof NumberNode) {
+            return node;
         }
-        this.node = node;
+        return new NumberNode(node.calc(Collections.emptyMap()));
     }
 
     /**
@@ -168,6 +172,7 @@ public class ExpressionParser {
         Map<String, DoubleBinaryOperator> b = new HashMap<>();
         b.put("min", Math::min);
         b.put("max", Math::max);
+        b.put("pow", Math::pow);
         b.put("hypot", Math::hypot);
         b.put("scale", (d, scale) -> BigDecimal.valueOf(d).setScale((int) scale, RoundingMode.DOWN).doubleValue());
         BINARY_FUNCTIONS = Collections.unmodifiableMap(b);
@@ -345,7 +350,7 @@ public class ExpressionParser {
 
         public UnaryOperatorNode(DoubleUnaryOperator operator, Node node) {
             this.operator = operator;
-            this.node = node;
+            this.node = preCalc(node);
         }
 
         @Override
@@ -366,8 +371,8 @@ public class ExpressionParser {
 
         public BinaryOperatorNode(DoubleBinaryOperator operator, Node left, Node right) {
             this.operator = operator;
-            this.left = left;
-            this.right = right;
+            this.left = preCalc(left);
+            this.right = preCalc(right);
         }
 
         @Override

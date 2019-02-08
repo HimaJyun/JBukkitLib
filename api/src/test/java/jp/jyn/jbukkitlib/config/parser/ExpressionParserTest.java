@@ -1,5 +1,6 @@
 package jp.jyn.jbukkitlib.config.parser;
 
+import jp.jyn.jbukkitlib.util.MapBuilder;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -69,11 +70,30 @@ public class ExpressionParserTest {
         assertEquals(Math.abs(-10), new ExpressionParser("abs(negative(10))").calc(), 0);
         assertEquals(Math.min(1, 2), new ExpressionParser("min(1,2)").calc(), 0);
         // random
+        ExpressionParser p = new ExpressionParser("floor(random()*(max-min-1))+min");
         Map<String, Double> variable = new HashMap<>();
         variable.put("min", 10.0d);
         variable.put("max", 20.0d);
-        System.out.println("floor(random()*(max-min-1))+min: " + new ExpressionParser("floor(random()*(max-min-1))+min").calc(variable));
+        System.out.println("floor(random()*(max-min-1))+min: " + p.calc(variable) + ", " + p.calc(variable));
         ExpressionParser rnd = new ExpressionParser("random()");
         System.out.println("random(): " + rnd.calc() + ", " + rnd.calc());
+    }
+
+    @Test
+    public void preCalc() {
+        int x1 = 100, y1 = 200, z1 = 300, x2 = 400, y2 = 500, z2 = 600;
+        ExpressionParser p = new ExpressionParser(String.format("sqrt(pow(%d-%d,2)+pow(%d-%d,2)+pow(%d-%d,2))", x1, x2, y1, y2, z1, z2));
+        assertEquals(Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2) + Math.pow(z1 - z2, 2)), p.calc(), 0);
+        assertEquals(1 + Math.min(1, Math.abs(-(5 * 10))), new ExpressionParser("1+min(1,abs(negative(5*10)))").calc(), 0);
+
+        Map<String, Double> variable = MapBuilder.initMap(new HashMap<>(), m -> {
+            m.put("x1", (double) x1);
+            m.put("x2", (double) x2);
+            m.put("y1", (double) y1);
+            m.put("y2", (double) y2);
+            m.put("z1", (double) z1);
+            m.put("z2", (double) z2);
+        });
+        assertEquals(new ExpressionParser("sqrt(pow(x1-x2,2)+pow(y1-y2,2)+pow(z1-z2,2))").calc(variable), p.calc(), 0);
     }
 }
