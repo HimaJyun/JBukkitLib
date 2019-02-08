@@ -45,7 +45,9 @@ public class YamlLoader {
      * {@link Plugin#saveDefaultConfig()}
      */
     public void saveDefaultConfig() {
-        plugin.saveResource(file, false);
+        if (!configFile.exists()) {
+            plugin.saveResource(file, false);
+        }
     }
 
     /**
