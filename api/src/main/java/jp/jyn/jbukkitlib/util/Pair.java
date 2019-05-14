@@ -5,6 +5,7 @@ import java.util.Map;
 
 /**
  * Simple pair
+ *
  * @param <K> Type 1
  * @param <V> Type 2
  */
@@ -41,6 +42,19 @@ public interface Pair<K, V> {
     }
 
     /**
+     * Create new pair
+     *
+     * @param key   value 1
+     * @param value value 2
+     * @param <K>   Type 1
+     * @param <V>   Type 2
+     * @return Immutable pair
+     */
+    static <K, V> Pair<K, V> of(K key, V value) {
+        return new Immutable<>(key, value);
+    }
+
+    /**
      * Immutable pair
      *
      * @param <K> Type 1
@@ -61,6 +75,10 @@ public interface Pair<K, V> {
 
         public Immutable(Pair<K, V> pair) {
             this(pair.getKey(), pair.getValue());
+        }
+
+        public static <K, V> Immutable<K, V> of(K key, V value) {
+            return new Immutable<>(key, value);
         }
 
         @Override
@@ -113,6 +131,10 @@ public interface Pair<K, V> {
 
         public Mutable(Pair<K, V> pair) {
             this(pair.getKey(), pair.getValue());
+        }
+
+        public static <K, V> Mutable<K, V> of(K key, V value) {
+            return new Mutable<>(key, value);
         }
 
         @Override
