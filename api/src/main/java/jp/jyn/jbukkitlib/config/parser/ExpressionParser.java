@@ -15,7 +15,10 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * <p>Arithmetic expression parser.</p>
  * <p>Priority: (), function -&gt; *, /, %, ^ -&gt; +, -</p>
- * <p>Available functions: abs, sin, cos, tan, round, floor, ceil, log, negative, random, min, max</p>
+ * <p>Available functions:
+ * abs, sin, cos, tan, sinh, cosh, tanh, asin, acos, atan,
+ * round, floor, ceil, exp, log, log10, log1p, sqrt, cbrt,
+ * signum, negative, min, max, pow, hypot, scale, random</p>
  */
 public class ExpressionParser {
     private final Node node;

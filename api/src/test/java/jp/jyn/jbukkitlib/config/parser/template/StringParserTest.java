@@ -2,10 +2,9 @@ package jp.jyn.jbukkitlib.config.parser.template;
 
 import jp.jyn.jbukkitlib.config.parser.template.variable.StringVariable;
 import org.bukkit.ChatColor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StringParserTest {
     private TemplateParser parser;

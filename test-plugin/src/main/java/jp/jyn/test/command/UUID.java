@@ -11,6 +11,7 @@ public class UUID extends SubCommand {
     @Override
     protected Result execCommand(CommandSender sender, Queue<String> args) {
         UUIDRegistry registry = UUIDRegistry.getSharedCacheRegistry(Main.instance);
+        sender.sendMessage(String.join(", ", args));
         registry.getMultipleUUIDAsync(args)
             .thenAccept(v -> v.forEach(
                 (name, uuid) -> sender.sendMessage(String.format("%s: %s", name, uuid))

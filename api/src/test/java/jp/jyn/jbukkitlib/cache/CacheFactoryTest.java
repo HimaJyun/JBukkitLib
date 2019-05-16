@@ -1,8 +1,8 @@
 package jp.jyn.jbukkitlib.cache;
 
 import com.google.common.cache.CacheBuilder;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +20,7 @@ import java.util.function.IntFunction;
 
 public class CacheFactoryTest {
 
-    @Ignore
+    @Disabled
     @Test
     public void benchmarkConcurrentLRU() {
         // Warning: This test may not be correct.

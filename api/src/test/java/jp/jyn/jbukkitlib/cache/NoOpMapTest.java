@@ -1,11 +1,11 @@
 package jp.jyn.jbukkitlib.cache;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class NoOpMapTest {
     private final Map<Object, Object> m = NoOpMap.getInstance();
@@ -19,7 +19,7 @@ public class NoOpMapTest {
     @Test
     public void getInstance() {
         assertNotNull(m);
-        assertSame("NoOpMap is not Singleton", m, NoOpMap.getInstance());
+        assertSame(m, NoOpMap.getInstance(), "NoOpMap is not Singleton");
     }
 
     @Test

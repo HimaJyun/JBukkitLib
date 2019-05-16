@@ -1,19 +1,19 @@
 package jp.jyn.jbukkitlib.uuid;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UUIDConverterTest {
 
     private final UUID himajyun = UUID.fromString("3d4187e5-5565-48a3-899f-0fcc365e7084");
 
-    @Ignore
+    @Disabled
     @Test
     public void uuidGetterTest() throws Exception {
         Optional<Map.Entry<String, UUID>> result = new UUIDConverter.UUIDGetter("himajyun").call();
@@ -21,11 +21,11 @@ public class UUIDConverterTest {
         assertEquals(himajyun, result.get().getValue());
         System.out.println(result.get().getKey() + " : " + result.get().getValue());
 
-        result = new UUIDConverter.UUIDGetter("_").call();
+        result = new UUIDConverter.UUIDGetter("not-found-user").call();
         assertFalse(result.isPresent());
     }
 
-    @Ignore
+    @Disabled
     @Test
     public void nameGetterTest() throws Exception {
         Optional<String> result = new UUIDConverter.NameGetter(himajyun).call();
