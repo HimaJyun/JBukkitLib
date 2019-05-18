@@ -5,7 +5,6 @@ import jp.jyn.jbukkitlib.config.parser.template.variable.TemplateVariable;
 import org.bukkit.ChatColor;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
@@ -19,8 +18,8 @@ import java.util.Queue;
  * <li>&amp;&amp; -&gt; &amp;</li>
  * </ul>
  */
-public class StringParser implements TemplateParser {
-    private final static ThreadLocal<StringBuilder> localBuilder = ThreadLocal.withInitial(StringBuilder::new);
+public class StringParser extends AbstractParser implements TemplateParser {
+    protected final static ThreadLocal<StringBuilder> localBuilder = ThreadLocal.withInitial(StringBuilder::new);
     private final List<Node> nodes;
 
     private StringParser(List<Node> nodes) {
@@ -101,71 +100,6 @@ public class StringParser implements TemplateParser {
         }
 
         return new StringParser(newNodes);
-    }
-
-    private static Queue<String> exprQueue(CharSequence sequence) {
-        Queue<String> exp = new LinkedList<>();
-        StringBuilder buf = localBuilder.get();
-        buf.setLength(0);
-
-        int nest = 0;
-        boolean escape = false;
-
-        for (int i = 0; i < sequence.length(); i++) {
-            char c = sequence.charAt(i);
-
-            if (escape) {
-                exp.add(buf.append(c).toString());
-                buf.setLength(0);
-                escape = false;
-                continue;
-            }
-
-            if (nest > 0) {
-                switch (c) {
-                    case '{':
-                        nest += 1;
-                        break;
-                    case '}':
-                        nest -= 1;
-                        break;
-                }
-                buf.append(c);
-                if (nest == 0) {
-                    exp.add(buf.toString());
-                    buf.setLength(0);
-                }
-                continue;
-            }
-
-            switch (c) {
-                case '{':
-                    nest += 1;
-                    exp.add(buf.toString());
-                    buf.setLength(0);
-                    buf.append(c);
-                    break;
-                case '&':
-                    escape = true;
-                    exp.add(buf.toString());
-                    buf.setLength(0);
-                    buf.append(c);
-                    break;
-                default:
-                    buf.append(c);
-                    break;
-            }
-        }
-
-        if (buf.length() != 0) {
-            if (escape) { // End with &
-                exp.add("&&");
-            } else {
-                exp.add(buf.toString());
-            }
-        }
-
-        return exp;
     }
 
     @Override
