@@ -1,8 +1,8 @@
 package jp.jyn.jbukkitlib.util.updater;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import jp.jyn.jbukkitlib.JBukkitLib;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 
 public class GitHubReleaseChecker implements UpdateChecker {
     private final static String ACCEPT = "application/vnd.github.v3+json";
+    private final static Gson gson = new Gson();
     private final String URL;
 
     private String etag = null;
@@ -36,12 +37,12 @@ public class GitHubReleaseChecker implements UpdateChecker {
         }
 
         try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
-            JSONObject json = (JSONObject) (new JSONParser()).parse(reader);
+            JsonObject json = gson.fromJson(reader, JsonObject.class);
             cache = new LatestVersion(
-                json.get("tag_name").toString(),
-                json.get("html_url").toString(),
-                OffsetDateTime.parse(json.get("published_at").toString()).toInstant(),
-                json.get("body").toString()
+                json.get("tag_name").getAsString(),
+                json.get("html_url").getAsString(),
+                OffsetDateTime.parse(json.get("published_at").getAsString()).toInstant(),
+                json.get("body").getAsString()
             );
             etag = connection.getHeaderField("ETag");
             lastModified = connection.getLastModified();

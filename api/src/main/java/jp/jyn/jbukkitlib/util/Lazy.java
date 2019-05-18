@@ -6,49 +6,98 @@ import java.util.function.Supplier;
 /**
  * Lazy Initializer
  *
- * @param <E> the type of elements held in this lazy
+ * @param <T> This Lazy type
  */
 @FunctionalInterface
-public interface Lazy<E> {
+public interface Lazy<T> {
     /**
      * Get Object
      *
      * @return object
      */
-    E get();
+    T get();
 
     /**
-     * not Lazy
+     * Calculated Lazy
      *
-     * @param <E> the type of elements held in this lazy
+     * @param value Lazy value
+     * @param <T>   This Lazy type
+     * @return Lazy.Computed
      */
-    class Computed<E> implements Lazy<E> {
-        private final E value;
+    static <T> Lazy<T> of(T value) {
+        return Lazy.Computed.of(value);
+    }
 
-        public Computed(E value) {
+    /**
+     * Non thread-safe Lazy
+     *
+     * @param initializer Lazy initializer
+     * @param <T>         This Lazy type
+     * @return Lazy.Simple
+     */
+    static <T> Lazy<T> of(Supplier<T> initializer) {
+        return Lazy.Simple.of(initializer);
+    }
+
+    /**
+     * Calculated Lazy
+     *
+     * @param <T> This Lazy type
+     */
+    class Computed<T> implements Lazy<T> {
+        private final T value;
+
+        public Computed(T value) {
             this.value = value;
         }
 
+        /**
+         * Calculated Lazy
+         *
+         * @param value Lazy value
+         * @param <T>   This Lazy type
+         * @return Lazy.Computed
+         */
+        public static <T> Computed<T> of(T value) {
+            return new Computed<>(value);
+        }
+
         @Override
-        public E get() {
+        public T get() {
             return value;
+        }
+
+        @Override
+        public String toString() {
+            return "Lazy.Computed[" + value + "]";
         }
     }
 
     /**
      * Non thread-safe Lazy
      *
-     * @param <E> the type of elements held in this lazy
+     * @param <T> This Lazy type
      */
-    class Simple<E> implements Lazy<E> {
-        private Supplier<E> initializer;
-        private E value = null;
+    class Simple<T> implements Lazy<T> {
+        private Supplier<T> initializer;
+        private T value = null;
 
-        public Simple(Supplier<E> initializer) {
+        public Simple(Supplier<T> initializer) {
             this.initializer = Objects.requireNonNull(initializer);
         }
 
-        public E get() {
+        /**
+         * Non thread-safe Lazy
+         *
+         * @param initializer Lazy initializer
+         * @param <T>         This Lazy type
+         * @return Lazy.Simple
+         */
+        public static <T> Simple<T> of(Supplier<T> initializer) {
+            return new Simple<>(initializer);
+        }
+
+        public T get() {
             if (value == null) {
                 value = initializer.get();
                 initializer = null;
@@ -56,22 +105,38 @@ public interface Lazy<E> {
 
             return value;
         }
+
+        @Override
+        public String toString() {
+            return "Lazy.Simple[" + (value == null ? "not initialized, " + initializer : value) + "]";
+        }
     }
 
     /**
      * Thread-safe Lazy
      *
-     * @param <E> the type of elements held in this lazy
+     * @param <T> This Lazy type
      */
-    class ThreadSafe<E> implements Lazy<E> {
-        private Supplier<E> initializer;
-        private volatile E value = null;
+    class ThreadSafe<T> implements Lazy<T> {
+        private Supplier<T> initializer;
+        private volatile T value = null;
 
-        public ThreadSafe(Supplier<E> initializer) {
+        public ThreadSafe(Supplier<T> initializer) {
             this.initializer = Objects.requireNonNull(initializer);
         }
 
-        public E get() {
+        /**
+         * Thread-safe Lazy
+         *
+         * @param initializer Lazy initializer
+         * @param <T>         This Lazy type
+         * @return Lazy.ThreadSafe
+         */
+        public static <T> ThreadSafe<T> of(Supplier<T> initializer) {
+            return new ThreadSafe<>(initializer);
+        }
+
+        public T get() {
             if (value == null) {
                 synchronized (this) {
                     if (value == null) {
@@ -82,6 +147,11 @@ public interface Lazy<E> {
             }
 
             return value;
+        }
+
+        @Override
+        public String toString() {
+            return "Lazy.ThreadSafe[" + (value == null ? "not initialized, " + initializer : value) + "]";
         }
     }
 }

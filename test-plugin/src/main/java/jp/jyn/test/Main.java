@@ -4,6 +4,7 @@ import jp.jyn.jbukkitlib.JBukkitLib;
 import jp.jyn.jbukkitlib.command.SubCommand;
 import jp.jyn.jbukkitlib.command.SubExecutor;
 import jp.jyn.test.command.Async;
+import jp.jyn.test.command.Chat;
 import jp.jyn.test.command.Item;
 import jp.jyn.test.command.UUID;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -27,6 +28,7 @@ public class Main extends JavaPlugin {
             }))
             .putCommand("async", new Async())
             .putCommand("item", new Item())
+            .putCommand("chat", new Chat())
             .putCommand("lambda", SubCommand.Lambda.init().setCommand((sender, strings) -> {
                 sender.sendMessage("Console");
                 return SubCommand.Result.OK;

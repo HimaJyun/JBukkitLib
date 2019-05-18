@@ -1,8 +1,9 @@
 package jp.jyn.jbukkitlib.uuid;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
@@ -23,6 +24,7 @@ import java.util.concurrent.Callable;
  * Minecraft UUID/Name Converter
  */
 public class UUIDConverter {
+    private final static Gson gson = new Gson();
 
     private UUIDConverter() {}
 
@@ -52,9 +54,9 @@ public class UUIDConverter {
             }
 
             try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
-                JSONArray array = (JSONArray) (new JSONParser()).parse(reader);
-                JSONObject json = (JSONObject) array.get(array.size() - 1);
-                return Optional.ofNullable(json.get("name").toString());
+                JsonArray array = gson.fromJson(reader, JsonArray.class);
+                JsonObject json = array.get(array.size() - 1).getAsJsonObject();
+                return Optional.ofNullable(json.get("name").getAsString());
             }
         }
 
@@ -125,24 +127,23 @@ public class UUIDConverter {
         @Override
         public Map<String, UUID> call() throws Exception {
             final StringBuilder builder = new StringBuilder(36);
-            final JSONParser parser = new JSONParser();
 
             Map<String, UUID> result = new HashMap<>((name.size() * 4) / 3);
 
             for (List<String> subList : subLists()) {
                 HttpsURLConnection connection = getConnection();
-                String body = JSONArray.toJSONString(subList);
+                String body = gson.toJson(subList);
                 requestBody(connection, body);
                 if (connection.getResponseCode() != 200) {
                     continue;
                 }
 
                 try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
-                    JSONArray array = (JSONArray) parser.parse(reader);
-                    for (Object obj : array) {
-                        JSONObject json = (JSONObject) obj;
-                        String id = (String) json.get("id");
-                        String name = (String) json.get("name");
+                    JsonArray array = gson.fromJson(reader, JsonArray.class);
+                    for (JsonElement obj : array) {
+                        JsonObject json = obj.getAsJsonObject();
+                        String id = json.get("id").getAsString();
+                        String name = json.get("name").getAsString();
 
                         result.put(name, toUUID(builder, id));
                     }

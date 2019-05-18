@@ -1,15 +1,15 @@
 package jp.jyn.jbukkitlib.util.updater;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class GitHubReleaseCheckerTest {
 
-    @Ignore
+    @Disabled
     @Test
     public void call() {
         // https://github.com/HimaJyun/JBukkitLib
