@@ -97,6 +97,11 @@ public interface Pair<K, V> {
         }
 
         @Override
+        public String toString() {
+            return "Pair.Immutable[" + key + ", " + value + "]";
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
@@ -162,6 +167,11 @@ public interface Pair<K, V> {
         @Override
         public Map.Entry<K, V> toMapEntry() {
             return new AbstractMap.SimpleImmutableEntry<>(key, value);
+        }
+
+        @Override
+        public String toString() {
+            return "Pair.Mutable[" + key + ", " + value + "]";
         }
 
         @Override

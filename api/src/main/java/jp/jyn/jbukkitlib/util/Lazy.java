@@ -66,6 +66,11 @@ public interface Lazy<T> {
         public T get() {
             return value;
         }
+
+        @Override
+        public String toString() {
+            return "Lazy.Computed[" + value + "]";
+        }
     }
 
     /**
@@ -99,6 +104,11 @@ public interface Lazy<T> {
             }
 
             return value;
+        }
+
+        @Override
+        public String toString() {
+            return "Lazy.Simple[" + (value == null ? "not initialized, " + initializer : value) + "]";
         }
     }
 
@@ -137,6 +147,11 @@ public interface Lazy<T> {
             }
 
             return value;
+        }
+
+        @Override
+        public String toString() {
+            return "Lazy.ThreadSafe[" + (value == null ? "not initialized, " + initializer : value) + "]";
         }
     }
 }
