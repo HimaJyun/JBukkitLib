@@ -1,6 +1,5 @@
 # JBukkitLib
-Library for Bukkit  
-[![Build Status](https://travis-ci.org/HimaJyun/JBukkitLib.svg?branch=master)](https://travis-ci.org/HimaJyun/JBukkitLib)
+Library for Bukkit
 
 # Usage
 Add Maven dependency
