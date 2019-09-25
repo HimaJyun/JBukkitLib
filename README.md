@@ -16,7 +16,7 @@ Add Maven dependency
     <dependency>
         <groupId>jp.jyn</groupId>
         <artifactId>JBukkitLib</artifactId>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
     </dependency>
 </dependencies>
 ```
@@ -30,7 +30,7 @@ It is recommended to "relocation" to prevent conflicts with different versions i
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-shade-plugin</artifactId>
-            <version>3.2.0</version>
+            <version>3.2.1</version>
             <executions>
                 <execution>
                     <phase>package</phase>
@@ -60,5 +60,6 @@ It is recommended to "relocation" to prevent conflicts with different versions i
 # Version
 |Version|Bukkit|Java|
 |:------|:-----|:---|
+|1.2.0|1.14.4-R0.1-SNAPSHOT|8|
 |1.1.0|1.14.1-R0.1-SNAPSHOT|8|
 |1.0.0|1.13.2-R0.1-SNAPSHOT|8|

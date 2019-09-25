@@ -1,16 +1,12 @@
 package jp.jyn.jbukkitlib.util;
 
 import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
 /**
  * ActionBar Sender
- *
- * @deprecated Use {@link org.bukkit.entity.Player.Spigot#sendMessage(ChatMessageType, BaseComponent)}
  */
-@Deprecated
 public class ActionBarSender {
     /**
      * <p>Init ActionBarSender</p>
