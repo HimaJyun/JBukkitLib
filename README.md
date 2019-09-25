@@ -1,5 +1,5 @@
 # JBukkitLib
-Library for Bukkit  
+Library for Bukkit
 
 # Usage
 Add Maven dependency
