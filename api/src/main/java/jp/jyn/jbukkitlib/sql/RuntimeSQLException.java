@@ -21,6 +21,7 @@ public class RuntimeSQLException extends RuntimeException implements Iterable<Th
 
     /**
      * {@link SQLException#getSQLState()}
+     * @return {@link SQLException#getSQLState()}
      */
     public String getSQLState() {
         return cause.getSQLState();
@@ -28,6 +29,7 @@ public class RuntimeSQLException extends RuntimeException implements Iterable<Th
 
     /**
      * {@link SQLException#getErrorCode()}
+     * @return {@link SQLException#getSQLState()}
      */
     public int getErrorCode() {
         return cause.getErrorCode();
@@ -35,6 +37,7 @@ public class RuntimeSQLException extends RuntimeException implements Iterable<Th
 
     /**
      * {@link SQLException#getNextException()}
+     * @return {@link SQLException#getSQLState()}
      */
     public SQLException getNextException() {
         return cause.getNextException();
@@ -42,6 +45,7 @@ public class RuntimeSQLException extends RuntimeException implements Iterable<Th
 
     /**
      * {@link SQLException#iterator()}
+     * @return {@link SQLException#getSQLState()}
      */
     @Override
     public Iterator<Throwable> iterator() {
