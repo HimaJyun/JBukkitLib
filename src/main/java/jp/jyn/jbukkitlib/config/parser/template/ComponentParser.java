@@ -1,5 +1,6 @@
 package jp.jyn.jbukkitlib.config.parser.template;
 
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -37,8 +38,13 @@ public class ComponentParser extends AbstractParser {
         return this;
     }
 
+    public ComponentParser actionbar(Player player) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
+        return this;
+    }
+
     public ComponentParser send(Player player) {
-        player.spigot().sendMessage(components);
+        player.spigot().sendMessage(ChatMessageType.SYSTEM, components);
         return this;
     }
 

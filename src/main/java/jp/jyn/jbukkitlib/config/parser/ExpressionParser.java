@@ -1,7 +1,5 @@
 package jp.jyn.jbukkitlib.config.parser;
 
-import jp.jyn.jbukkitlib.util.XorShift;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
@@ -9,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
@@ -338,7 +337,7 @@ public class ExpressionParser {
 
         @Override
         public double calc(Map<String, Double> variable) {
-            return XorShift.THREAD_LOCAL.get().nextDouble();
+            return ThreadLocalRandom.current().nextDouble();
         }
 
         @Override
