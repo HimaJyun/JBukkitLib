@@ -92,7 +92,6 @@ public class UUIDConverter {
         @Override
         public Optional<Map.Entry<String, UUID>> call() throws Exception {
             final MultipleUUIDGetter getter = new MultipleUUIDGetter(name);
-            //noinspection LoopStatementThatDoesntLoop
             for (Map.Entry<String, UUID> entry : getter.call().entrySet()) {
                 return Optional.of(entry);
             }

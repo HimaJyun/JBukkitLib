@@ -30,6 +30,7 @@ public class ItemStackParser {
 
     /**
      * Parse ItemStack
+     *
      * @param value String ItemStack
      * @return ItemStack
      */
@@ -102,6 +103,7 @@ public class ItemStackParser {
 
     /**
      * ItemStack to String
+     *
      * @param itemStack ItemStack
      * @return Formatted string.
      */
@@ -133,6 +135,7 @@ public class ItemStackParser {
 
     /**
      * Parse multiple enchants
+     *
      * @param value String enchants
      * @return Enchants map
      */
@@ -147,6 +150,7 @@ public class ItemStackParser {
 
     /**
      * Enchants to string
+     *
      * @param enchantments Enchants map
      * @return Formatted string.
      */
@@ -175,6 +179,7 @@ public class ItemStackParser {
 
     /**
      * Parse single enchant.
+     *
      * @param value String enchant
      * @return Enchant
      */
@@ -197,8 +202,9 @@ public class ItemStackParser {
 
     /**
      * Single enchant to string
+     *
      * @param enchantment enchant
-     * @param level level
+     * @param level       level
      * @return String enchant
      */
     public static String toString(Enchantment enchantment, int level) {

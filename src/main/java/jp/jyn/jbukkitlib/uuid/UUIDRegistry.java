@@ -183,11 +183,7 @@ public class UUIDRegistry {
             return Optional.of(player.getUniqueId());
         }
 
-        Optional<UUID> value = nameToUUIDCache.get(lower(name));
-        if (value != null) {
-            return value;
-        }
-        return null;
+        return nameToUUIDCache.get(lower(name));
     }
 
     /**
