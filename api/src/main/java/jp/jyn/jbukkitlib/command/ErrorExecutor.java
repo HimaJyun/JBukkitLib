@@ -9,15 +9,6 @@ import org.bukkit.command.CommandSender;
 @FunctionalInterface
 public interface ErrorExecutor {
     /**
-     * Cause of error.
-     */
-    enum Cause {
-        ERROR, COMMAND_NOT_FOUND,
-        PLAYER_ONLY, DONT_HAVE_PERMISSION, MISSING_ARGUMENT,
-        NOT_IMPLEMENTED, UNKNOWN
-    }
-
-    /**
      * onError
      *
      * @param error error info
@@ -32,7 +23,7 @@ public interface ErrorExecutor {
         /**
          * Cause of error.
          */
-        public final Cause cause;
+        public final SubCommand.Result cause;
         /**
          * <p>The subcommand you attempted to execute</p>
          * <p>Note: It is null if it is called with no argument specified when the default command is not set</p>
@@ -54,7 +45,7 @@ public interface ErrorExecutor {
          */
         public final String[] args;
 
-        public Info(Cause cause, String subArgs, SubCommand subCommand, CommandSender sender, Command command, String label, String[] args) {
+        public Info(SubCommand.Result cause, String subArgs, SubCommand subCommand, CommandSender sender, Command command, String label, String[] args) {
             this.cause = cause;
             this.subArgs = subArgs;
             this.subCommand = subCommand;

@@ -1,14 +1,12 @@
 package jp.jyn.jbukkitlib.command;
 
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.TabExecutor;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -16,21 +14,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Executor for invoking subcommand.
+ * Executor for invoking sub command.
  */
-public class SubExecutor implements CommandExecutor, TabCompleter {
-    private final static Map<SubCommand.Result, ErrorExecutor.Cause> RESULT_CAUSE_MAP;
-
-    static {
-        Map<SubCommand.Result, ErrorExecutor.Cause> m = new EnumMap<>(SubCommand.Result.class);
-        m.put(SubCommand.Result.ERROR, ErrorExecutor.Cause.ERROR);
-        m.put(SubCommand.Result.PLAYER_ONLY, ErrorExecutor.Cause.PLAYER_ONLY);
-        m.put(SubCommand.Result.MISSING_ARGUMENT, ErrorExecutor.Cause.MISSING_ARGUMENT);
-        m.put(SubCommand.Result.DONT_HAVE_PERMISSION, ErrorExecutor.Cause.DONT_HAVE_PERMISSION);
-        m.put(SubCommand.Result.NOT_IMPLEMENTED, ErrorExecutor.Cause.NOT_IMPLEMENTED);
-        RESULT_CAUSE_MAP = Collections.unmodifiableMap(m);
-    }
-
+public class SubExecutor implements TabExecutor {
     private final Map<String, SubCommand> commands;
     private final String defaultCommand;
     private final ErrorExecutor errorExecutor;
@@ -62,17 +48,16 @@ public class SubExecutor implements CommandExecutor, TabCompleter {
         SubCommand sub = (cmd == null ? null : commands.get(cmd));
         if (sub == null) {
             return errorExecutor.onError(new ErrorExecutor.Info(
-                ErrorExecutor.Cause.COMMAND_NOT_FOUND, cmd, null, sender, command, label, args
+                SubCommand.Result.UNKNOWN_COMMAND, cmd, null, sender, command, label, args
             ));
         }
 
-        SubCommand.Result result = sub.execCommand(sender, args);
+        SubCommand.Result result = sub.onCommand(sender, args);
         if (result == SubCommand.Result.OK) {
             return true;
         }
 
-        ErrorExecutor.Cause cause = RESULT_CAUSE_MAP.getOrDefault(result, ErrorExecutor.Cause.UNKNOWN);
-        return errorExecutor.onError(new ErrorExecutor.Info(cause, cmd, sub, sender, command, label, args));
+        return errorExecutor.onError(new ErrorExecutor.Info(result, cmd, sub, sender, command, label, args));
     }
 
     @Override

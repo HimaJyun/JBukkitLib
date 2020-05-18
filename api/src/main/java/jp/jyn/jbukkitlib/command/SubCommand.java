@@ -2,37 +2,34 @@ package jp.jyn.jbukkitlib.command;
 
 import jp.jyn.jbukkitlib.util.EmptyDeque;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.function.BiFunction;
 
 /**
- * Subcommand class
+ * SubCommand class
  */
-public abstract class SubCommand implements CommandExecutor, TabCompleter {
+public abstract class SubCommand implements TabExecutor {
     private final static Deque<String> EMPTY_DEQUE = EmptyDeque.getInstanceException();
 
     /**
      * Execution result
      */
     public enum Result {
-        OK, ERROR,
-        PLAYER_ONLY, DONT_HAVE_PERMISSION, MISSING_ARGUMENT,
-        NOT_IMPLEMENTED
+        OK, ERROR, UNKNOWN_COMMAND,
+        PLAYER_ONLY, DONT_HAVE_PERMISSION, MISSING_ARGUMENT
     }
 
     @Override
     public final boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return execCommand(sender, args) == Result.OK;
+        return onCommand(sender, args) == Result.OK;
     }
 
     /**
@@ -42,15 +39,15 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
      * @param args   args
      * @return Result
      */
-    public final Result execCommand(CommandSender sender, String... args) {
-        boolean isPlayer = sender instanceof Player;
+    public final Result onCommand(CommandSender sender, String... args) {
         // check player only mode.
-        if (!isPlayer && isPlayerOnly()) {
+        if (isPlayerOnly() && !(sender instanceof Player)) {
             return Result.PLAYER_ONLY;
         }
 
         // check permission.
-        if (!Optional.ofNullable(requirePermission()).map(sender::hasPermission).orElse(true)) {
+        String permission = requirePermission();
+        if (permission != null && !sender.hasPermission(permission)) {
             return Result.DONT_HAVE_PERMISSION;
         }
 
@@ -59,45 +56,24 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
             return Result.MISSING_ARGUMENT;
         }
 
-        // create args queue
-        Queue<String> subArgs = argsDeque(args);
-        if (isPlayer) {
-            return execCommand((Player) sender, subArgs);
-        } else {
-            return execCommand(sender, subArgs);
-        }
+        return onCommand(sender, argsDeque(args));
     }
 
     /**
-     * <p>Process when the player executes a command</p>
-     * <p>When not overwriting this method, the processing for the console is used.</p>
-     *
-     * @param sender Player
-     * @param args   args
-     * @return Result
-     */
-    protected Result execCommand(Player sender, Queue<String> args) {
-        return execCommand((CommandSender) sender, args);
-    }
-
-    /**
-     * <p>Processing when command is executed from the console</p>
-     * <p>If the processing for the player is not implemented, it is also called by the command execution by the player.</p>
+     * <p>Execute the command.</p>
      *
      * @param sender Sender
      * @param args   args
      * @return Result
      */
-    protected Result execCommand(CommandSender sender, Queue<String> args) {
-        return Result.NOT_IMPLEMENTED;
-    }
+    abstract protected Result onCommand(CommandSender sender, Queue<String> args);
 
     @Override
     public final List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return execTabComplete(sender, argsDeque(args));
+        return onTabComplete(sender, argsDeque(args));
     }
 
-    protected List<String> execTabComplete(CommandSender sender, Deque<String> args) {
+    protected List<String> onTabComplete(CommandSender sender, Deque<String> args) {
         return Collections.emptyList();
     }
 
@@ -175,16 +151,6 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * Initialize player specific commands using lambda.
-     *
-     * @param playerCommand Command lambda.
-     * @return SubCommand
-     */
-    public static SubCommand withPlayerCommand(BiFunction<Player, Queue<String>, Result> playerCommand) {
-        return Lambda.init().setPlayerOnly(true).setPlayerCommand(playerCommand).build();
-    }
-
-    /**
      * Initialize command with lambda.
      *
      * @param command Command
@@ -195,8 +161,7 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
     }
 
     public static class Lambda {
-        private BiFunction<Player, Queue<String>, Result> playerCommand = null;
-        private BiFunction<CommandSender, Queue<String>, Result> command = (s, a) -> Result.NOT_IMPLEMENTED;
+        private BiFunction<CommandSender, Queue<String>, Result> command = (s, a) -> Result.ERROR;
         private BiFunction<CommandSender, Deque<String>, List<String>> tabComplete = (s, a) -> Collections.emptyList();
         private boolean playerOnly = false;
         private String requirePermission = null;
@@ -205,11 +170,6 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
 
         public static Lambda init() {
             return new Lambda();
-        }
-
-        public Lambda setPlayerCommand(BiFunction<Player, Queue<String>, Result> playerCommand) {
-            this.playerCommand = playerCommand;
-            return this;
         }
 
         public Lambda setCommand(BiFunction<CommandSender, Queue<String>, Result> command) {
@@ -255,20 +215,12 @@ public abstract class SubCommand implements CommandExecutor, TabCompleter {
         }
 
         @Override
-        protected Result execCommand(Player sender, Queue<String> args) {
-            if (lambda.playerCommand == null) {
-                return this.execCommand((CommandSender) sender, args);
-            }
-            return lambda.playerCommand.apply(sender, args);
-        }
-
-        @Override
-        protected Result execCommand(CommandSender sender, Queue<String> args) {
+        protected Result onCommand(CommandSender sender, Queue<String> args) {
             return lambda.command.apply(sender, args);
         }
 
         @Override
-        protected List<String> execTabComplete(CommandSender sender, Deque<String> args) {
+        protected List<String> onTabComplete(CommandSender sender, Deque<String> args) {
             return lambda.tabComplete.apply(sender, args);
         }
 
