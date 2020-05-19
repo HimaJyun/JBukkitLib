@@ -5,20 +5,22 @@ Library for Bukkit
 Add Maven dependency
 
 ```xml
-<repositories>
-    <repository>
-        <id>himajyun-repo</id>
-        <url>https://himajyun.github.io/mvn-repo/</url>
-    </repository>
-</repositories>
-
-<dependencies>
-    <dependency>
-        <groupId>jp.jyn</groupId>
-        <artifactId>JBukkitLib</artifactId>
-        <version>1.3.0</version>
-    </dependency>
-</dependencies>
+<project>
+    <repositories>
+        <repository>
+            <id>himajyun-repo</id>
+            <url>https://himajyun.github.io/mvn-repo/</url>
+        </repository>
+    </repositories>
+    
+    <dependencies>
+        <dependency>
+            <groupId>jp.jyn</groupId>
+            <artifactId>JBukkitLib</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+    </dependencies>
+</project>
 ```
 
 Create a FatJar with maven-shade-plugin.  
@@ -60,6 +62,7 @@ It is recommended to "relocation" to prevent conflicts with different versions i
 # Version
 |Version|Bukkit|Java|
 |:------|:-----|:---|
+|1.4.0|1.15.2-R0.1-SNAPSHOT|8|
 |1.3.0|1.15.2-R0.1-SNAPSHOT|8|
 |1.2.0|1.14.4-R0.1-SNAPSHOT|8|
 |1.1.0|1.14.1-R0.1-SNAPSHOT|8|
