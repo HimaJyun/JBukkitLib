@@ -1,10 +1,17 @@
 package jp.jyn.jbukkitlib.config.parser.template;
 
+import jp.jyn.jbukkitlib.config.parser.template.variable.ComponentFunction;
+import jp.jyn.jbukkitlib.config.parser.template.variable.ComponentVariable;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.UUID;
+import java.util.concurrent.ForkJoinPool;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ComponentParserTest {
     ComponentParser parser;
@@ -20,7 +27,12 @@ class ComponentParserTest {
     @Test
     public void stringTest2() {
         parser = ComponentParser.parse("raw &0string&r\\");
+        BaseComponent[] b = legacy("raw &0string&r\\");
+
         TextComponent[] c = parser.getComponents();
+        assertEquals(c.length, b.length);
+        assertArrayEquals(c, b);
+
         assertEquals(c.length, 3);
         assertEquals(c[0].getText(), "raw ");
 
@@ -33,43 +45,31 @@ class ComponentParserTest {
     @Test
     public void stringTest3() {
         parser = ComponentParser.parse("aaa&l&kzzz&addd&rzzz");
+
         TextComponent[] c = parser.getComponents();
-        assertEquals(c.length, 4);
-        assertEquals(c[0].getText(), "aaa");
+        BaseComponent[] b = legacy("aaa&l&kzzz&addd&rzzz");
 
-        assertEquals(c[1].getText(), "zzz");
-        assertTrue(c[1].isObfuscatedRaw());
-        assertTrue(c[1].isBoldRaw());
-
-        assertEquals(c[2].getText(), "ddd");
-        assertEquals(c[2].getColorRaw(), ChatColor.GREEN);
-
-        assertEquals(c[3].getText(), "zzz");
-        assertNull(c[3].isObfuscatedRaw());
-        assertNull(c[3].getColorRaw());
+        assertArrayEquals(c, b);
     }
 
     @Test
     public void colorCodeTest() {
         parser = ComponentParser.parse("&z&0&a&r&");
         TextComponent[] c = parser.getComponents();
-        assertEquals(c.length, 2);
+        BaseComponent[] b = legacy("&z&0&a&r&");
 
-        assertEquals(c[0].getText(), "&z");
-
-        assertEquals(c[1].getText(), "&");
-        assertNull(c[1].getColorRaw());
+        assertArrayEquals(c, b);
     }
 
     @Test
     public void variableTest1() {
         parser = ComponentParser.parse("{test} variable");
-        TextComponent[] c = parser.getComponents();
+        TextComponent[] c = parser.getComponents(ComponentVariable.init().put("test", co -> co.setText("aaa")));
         assertEquals(c.length, 2);
-
-        assertEquals(c[0].getText(), "{test}");
-        parser.setVariable("test", "aaa");
         assertEquals(c[0].getText(), "aaa");
+
+        TextComponent[] b = parser.getComponents();
+        assertEquals(b[0].getText(), "{test}");
 
         assertEquals(c[1].getText(), " variable");
     }
@@ -77,14 +77,26 @@ class ComponentParserTest {
     @Test
     public void variableTest2() {
         parser = ComponentParser.parse("variable {test}");
-        TextComponent[] c = parser.getComponents();
+        TextComponent[] c = parser.getComponents(ComponentVariable.init().put("test", co -> co.setText("aaa")));
         assertEquals(c.length, 2);
 
         assertEquals(c[0].getText(), "variable ");
-
-        assertEquals(c[1].getText(), "{test}");
-        parser.setVariable("test", "aaa");
         assertEquals(c[1].getText(), "aaa");
+
+        TextComponent[] b = parser.getComponents();
+        assertEquals(b[1].getText(), "{test}");
+    }
+
+    @Test
+    public void variableTest3() {
+        parser = ComponentParser.parse("{test}");
+        TextComponent[] c = parser.getComponents(ComponentVariable.init().put("test", co -> co.setText("aaa")));
+        assertEquals(c.length, 1);
+
+        assertEquals(c[0].getText(), "aaa");
+
+        TextComponent[] b = parser.getComponents();
+        assertEquals(b[0].getText(), "{test}");
     }
 
     @Test
@@ -94,5 +106,43 @@ class ComponentParserTest {
         TextComponent[] c = parser.getComponents();
         assertEquals(c.length, 1);
         assertEquals(c[0].getText(), "& { &0 &z & &");
+    }
+
+    @Test
+    public void urlTest() {
+        parser = ComponentParser.parse("https://example.com/");
+        TextComponent[] c = parser.getComponents();
+        BaseComponent[] b = legacy("https://example.com/");
+
+        assertArrayEquals(c, b);
+    }
+
+    @Test
+    public void functionTest() {
+        String[] ary = new String[]{"a", "b", "c", "d"};
+        parser = ComponentParser.parse("{function(\",\")}");
+
+        TextComponent[] c = parser.getComponents(ComponentFunction.init().put("function", (co, a) -> co.setText(String.join(a[0], ary))));
+        assertEquals(c.length, 1);
+
+        assertEquals(c[0].getText(), String.join(",", ary));
+    }
+
+    @Test
+    public void threadTest() {
+        final int NUM_THREAD = 128;
+        parser = ComponentParser.parse("{test}");
+
+        for (int i = 0; i < NUM_THREAD; i++) {
+            ForkJoinPool.commonPool().execute(() -> {
+                String test = UUID.randomUUID().toString();
+                TextComponent[] c = parser.getComponents(ComponentVariable.init().put("test", co -> co.setText(test)));
+                assertEquals(c[0].getText(), test);
+            });
+        }
+    }
+
+    private BaseComponent[] legacy(String str) {
+        return TextComponent.fromLegacyText(org.bukkit.ChatColor.translateAlternateColorCodes('&', str));
     }
 }
