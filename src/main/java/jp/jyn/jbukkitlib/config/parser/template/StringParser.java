@@ -5,8 +5,10 @@ import jp.jyn.jbukkitlib.config.parser.template.variable.TemplateVariable;
 import org.bukkit.ChatColor;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * <p>Simple template parser</p>
@@ -19,6 +21,11 @@ import java.util.Queue;
  * </ul>
  */
 public class StringParser extends AbstractParser implements TemplateParser {
+    // | で先にあるものが先にヒットする仕様に依存しているので注意
+    // \\[\\{}&#]|\{.+?\}|&[0-9a-fk-or]|#[0-9a-f]{6}|#[0-9a-f]{3}
+    // \\ud[8-b][0-9a-f]{2}\\u[c-f][0-9a-f]{2}|\\u[0-9a-f]{4}
+    private final static Pattern pattern = Pattern.compile("\\\\[\\\\{}&#]|\\{.+?\\}|&[0-9a-fk-or]|#[0-9a-f]{6}|#[0-9a-f]{3}");
+
     protected final static ThreadLocal<StringBuilder> localBuilder = ThreadLocal.withInitial(StringBuilder::new);
     private final List<Node> nodes;
 
@@ -33,69 +40,76 @@ public class StringParser extends AbstractParser implements TemplateParser {
      * @return Parsed value.
      */
     public static TemplateParser parse(CharSequence sequence) {
-        Queue<String> expr = exprQueue(sequence);
-        List<Node> nodes = new ArrayList<>(expr.size());
-        while (!expr.isEmpty()) {
-            String value = expr.remove();
-            if (value.isEmpty()) {
+        StringBuilder sb = new StringBuilder();
+        List<Node> nodes = new LinkedList<>();
+
+        int end = 0;
+        Matcher m = pattern.matcher(sequence);
+        while (m.find()) {
+            // 空パターンが大量に入るが、後で消すので問題ない (その辺を判定すればsubSequenceが減らせるので効率は上がる)
+            nodes.add(new StringNode(sequence.subSequence(end, m.start()).toString()));
+            end = m.end();
+
+            // エスケープ
+            if (sequence.charAt(m.start()) == '\\') {
+                nodes.add(new StringNode(String.valueOf(sequence.charAt(m.start() + 1))));
                 continue;
             }
-            char c = value.charAt(0);
 
-            if (c == '{' && value.charAt(value.length() - 1) == '}') { // variable
-                nodes.add(new VariableNode(value.substring(1, value.length() - 1)));
+            // 変数
+            if (sequence.charAt(m.start()) == '{') {
+                nodes.add(new VariableNode(sequence.subSequence(m.start() + 1, m.end() - 1).toString()));
                 continue;
             }
 
-            if (c == '&') {
-                char c2 = value.charAt(1);
-                switch (c2) { // escape
-                    case '{':
-                    case '}':
-                    case '&':
-                        nodes.add(new StringNode(Character.toString(c2)));
-                        continue;
+            // カラーコード
+            if (sequence.charAt(m.start()) == '&') {
+                nodes.add(new StringNode(ChatColor.getByChar(sequence.charAt(m.end() - 1)).toString()));
+                continue;
+            }
+
+            // 16進数色指定
+            if (sequence.charAt(m.start()) == '#') {
+                sb.append(ChatColor.COLOR_CHAR).append('x');
+                boolean reuse = (m.end() - m.start()) == 4;
+                for (int i = m.start() + 1; i < m.end(); i++) {
+                    char c = sequence.charAt(i);
+                    sb.append(ChatColor.COLOR_CHAR).append(c);
+                    if (reuse) {
+                        sb.append(ChatColor.COLOR_CHAR).append(c);
+                    }
                 }
-
-                ChatColor color = ChatColor.getByChar(c2);
-                if (color != null) {
-                    // &1 &2 -> ChatColor
-                    nodes.add(new StringNode(color.toString()));
-                } else {
-                    // &z -> &z
-                    nodes.add(new StringNode(value));
-                }
+                nodes.add(new StringNode(sb.toString()));
+                sb.setLength(0);
                 continue;
             }
 
-            // string
-            nodes.add(new StringNode(value));
+            // 誤ヒット？
+            throw new IllegalArgumentException("Invalid input: " + sequence.subSequence(m.start(), m.end()));
         }
+        nodes.add(new StringNode(sequence.subSequence(end, sequence.length()).toString()));
 
-        // concat string nodes.
-        List<Node> newNodes = new ArrayList<>(nodes.size());
-        StringBuilder buf = localBuilder.get();
-        buf.setLength(0);
-
+        // ノード結合
+        List<Node> newNodes = new ArrayList<>();
         for (Node node : nodes) {
-            if (node.isImmutable()) {
-                buf.append(node.toString());
+            if (node instanceof StringNode) {
+                sb.append(node.toString());
             } else {
-                if (buf.length() != 0) {
-                    newNodes.add(new StringNode(buf.toString()));
-                    buf.setLength(0);
+                if (sb.length() != 0) {
+                    newNodes.add(new StringNode(sb.toString()));
+                    sb.setLength(0);
                 }
                 newNodes.add(node);
             }
         }
-        if (buf.length() != 0) {
-            newNodes.add(new StringNode(buf.toString()));
+        if (sb.length() != 0) {
+            newNodes.add(new StringNode(sb.toString()));
         }
 
         // string only
         if (newNodes.size() == 0) {
             return new RawStringParser("");
-        } else if (newNodes.size() == 1 && newNodes.get(0).isImmutable()) {
+        } else if (newNodes.size() == 1 && (newNodes.get(0) instanceof StringNode)) {
             return new RawStringParser(newNodes.get(0).toString());
         }
 
@@ -121,8 +135,6 @@ public class StringParser extends AbstractParser implements TemplateParser {
 
     private interface Node {
         void toString(StringBuilder builder, TemplateVariable variable);
-
-        boolean isImmutable();
     }
 
     private static class StringNode implements Node {
@@ -140,11 +152,6 @@ public class StringParser extends AbstractParser implements TemplateParser {
         @Override
         public String toString() {
             return value;
-        }
-
-        @Override
-        public boolean isImmutable() {
-            return true;
         }
     }
 
@@ -169,11 +176,6 @@ public class StringParser extends AbstractParser implements TemplateParser {
         @Override
         public String toString() {
             return "{" + key + "}";
-        }
-
-        @Override
-        public boolean isImmutable() {
-            return false;
         }
     }
 }

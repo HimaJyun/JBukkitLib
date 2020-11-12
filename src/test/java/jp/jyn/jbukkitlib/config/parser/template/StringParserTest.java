@@ -4,7 +4,8 @@ import jp.jyn.jbukkitlib.config.parser.template.variable.StringVariable;
 import org.bukkit.ChatColor;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StringParserTest {
     private TemplateParser parser;
@@ -27,6 +28,18 @@ public class StringParserTest {
     public void colorCodeTest() {
         parser = StringParser.parse("&z&0&a&r&");
         assertEquals(parser.toString(), "&z" + ChatColor.BLACK + ChatColor.GREEN + ChatColor.RESET + "&");
+    }
+
+    @Test
+    public void hexColorCodeTest() {
+        parser = StringParser.parse("abc#ddd#012345#0123#01234#fffz123");
+        assertEquals(parser.toString(), "abc" +
+            "\u00A7x\u00A7d\u00A7d\u00A7d\u00A7d\u00A7d\u00A7d" +
+            "\u00A7x\u00A70\u00A71\u00A72\u00A73\u00A74\u00A75" +
+            "\u00A7x\u00A70\u00A70\u00A71\u00A71\u00A72\u00A723" +
+            "\u00A7x\u00A70\u00A70\u00A71\u00A71\u00A72\u00A7234" +
+            "\u00A7x\u00A7f\u00A7f\u00A7f\u00A7f\u00A7f\u00A7f" +
+            "z123");
     }
 
     @Test
@@ -58,9 +71,9 @@ public class StringParserTest {
 
     @Test
     public void escapeTest() {
-        // && &{ &&0 &z & &
-        parser = StringParser.parse("&& &{ &&0 &z & &");
-        assertEquals(parser.toString(), "& { &0 &z & &");
+        // \\ \{ \&0 \z \ \
+        parser = StringParser.parse("\\\\ \\{ \\&0 \\z \\ \\");
+        assertEquals(parser.toString(), "\\ { &0 \\z \\ \\");
     }
 
     @Test
