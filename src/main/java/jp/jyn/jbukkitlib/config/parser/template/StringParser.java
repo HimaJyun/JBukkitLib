@@ -5,27 +5,19 @@ import jp.jyn.jbukkitlib.config.parser.template.variable.TemplateVariable;
 import org.bukkit.ChatColor;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * <p>Simple template parser</p>
  * <p>Available format:</p>
  * <ul>
  * <li>{variable} -&gt; variable</li>
- * <li>&amp; -&gt; escape</li>
  * <li>&amp;(char) -&gt; ColorCode</li>
- * <li>&amp;&amp; -&gt; &amp;</li>
+ * <li>#ffffff -&gt hex color</li>
+ * <li>\ -&gt; escape</li>
  * </ul>
  */
-public class StringParser extends AbstractParser implements TemplateParser {
-    // | で先にあるものが先にヒットする仕様に依存しているので注意
-    // \\[\\{}&#]|\{.+?\}|&[0-9a-fk-or]|#[0-9a-f]{6}|#[0-9a-f]{3}
-    // \\ud[8-b][0-9a-f]{2}\\u[c-f][0-9a-f]{2}|\\u[0-9a-f]{4}
-    private final static Pattern pattern = Pattern.compile("\\\\[\\\\{}&#]|\\{.+?\\}|&[0-9a-fk-or]|#[0-9a-f]{6}|#[0-9a-f]{3}");
-
+public class StringParser implements TemplateParser {
     protected final static ThreadLocal<StringBuilder> localBuilder = ThreadLocal.withInitial(StringBuilder::new);
     private final List<Node> nodes;
 
@@ -40,66 +32,32 @@ public class StringParser extends AbstractParser implements TemplateParser {
      * @return Parsed value.
      */
     public static TemplateParser parse(CharSequence sequence) {
-        StringBuilder sb = new StringBuilder();
-        List<Node> nodes = new LinkedList<>();
-
-        int end = 0;
-        Matcher m = pattern.matcher(sequence);
-        while (m.find()) {
-            // 空パターンが大量に入るが、後で消すので問題ない (その辺を判定すればsubSequenceが減らせるので効率は上がる)
-            nodes.add(new StringNode(sequence.subSequence(end, m.start()).toString()));
-            end = m.end();
-
-            // エスケープ
-            if (sequence.charAt(m.start()) == '\\') {
-                nodes.add(new StringNode(String.valueOf(sequence.charAt(m.start() + 1))));
-                continue;
-            }
-
-            // 変数
-            if (sequence.charAt(m.start()) == '{') {
-                nodes.add(new VariableNode(sequence.subSequence(m.start() + 1, m.end() - 1).toString()));
-                continue;
-            }
-
-            // カラーコード
-            if (sequence.charAt(m.start()) == '&') {
-                nodes.add(new StringNode(ChatColor.getByChar(sequence.charAt(m.end() - 1)).toString()));
-                continue;
-            }
-
-            // 16進数色指定
-            if (sequence.charAt(m.start()) == '#') {
-                sb.append(ChatColor.COLOR_CHAR).append('x');
-                boolean reuse = (m.end() - m.start()) == 4;
-                for (int i = m.start() + 1; i < m.end(); i++) {
-                    char c = sequence.charAt(i);
-                    sb.append(ChatColor.COLOR_CHAR).append(c);
-                    if (reuse) {
-                        sb.append(ChatColor.COLOR_CHAR).append(c);
-                    }
-                }
-                nodes.add(new StringNode(sb.toString()));
-                sb.setLength(0);
-                continue;
-            }
-
-            // 誤ヒット？
-            throw new IllegalArgumentException("Invalid input: " + sequence.subSequence(m.start(), m.end()));
-        }
-        nodes.add(new StringNode(sequence.subSequence(end, sequence.length()).toString()));
-
-        // ノード結合
+        List<Parser.Node> nodes = Parser.parse(sequence);
         List<Node> newNodes = new ArrayList<>();
-        for (Node node : nodes) {
-            if (node instanceof StringNode) {
-                sb.append(node.toString());
-            } else {
-                if (sb.length() != 0) {
-                    newNodes.add(new StringNode(sb.toString()));
-                    sb.setLength(0);
-                }
-                newNodes.add(node);
+
+        StringBuilder sb = new StringBuilder();
+        for (Parser.Node node : nodes) {
+            switch (node.type) {
+                case STRING:
+                    sb.append(node.getValue());
+                    break;
+                case MC_COLOR:
+                    sb.append(ChatColor.COLOR_CHAR).append(node.getValue());
+                    break;
+                case HEX_COLOR:
+                    sb.append(ChatColor.COLOR_CHAR).append('x');
+                    CharSequence seq = node.getValue();
+                    for (int i = 0; i < seq.length(); i++) {
+                        sb.append(ChatColor.COLOR_CHAR).append(seq.charAt(i));
+                    }
+                    break;
+                case VARIABLE:
+                    if (sb.length() != 0) {
+                        newNodes.add(new StringNode(sb.toString()));
+                        sb.setLength(0);
+                    }
+                    newNodes.add(new VariableNode(node.getValue().toString()));
+                    break;
             }
         }
         if (sb.length() != 0) {
