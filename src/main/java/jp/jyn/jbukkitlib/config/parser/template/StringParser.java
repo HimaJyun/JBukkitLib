@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <p>Simple template parser</p>
+ * <p>Simple template parser (Thread-Safe)</p>
  * <p>Available format:</p>
  * <ul>
  * <li>{variable} -&gt; variable</li>
@@ -18,7 +18,7 @@ import java.util.List;
  * </ul>
  */
 public class StringParser implements TemplateParser {
-    protected final static ThreadLocal<StringBuilder> localBuilder = ThreadLocal.withInitial(StringBuilder::new);
+    private final static ThreadLocal<StringBuilder> LOCAL_BUILDER = ThreadLocal.withInitial(StringBuilder::new);
     private final List<Node> nodes;
 
     private StringParser(List<Node> nodes) {
@@ -28,15 +28,15 @@ public class StringParser implements TemplateParser {
     /**
      * Parses a string.
      *
-     * @param sequence Char sequence
+     * @param str input value.
      * @return Parsed value.
      */
-    public static TemplateParser parse(CharSequence sequence) {
-        List<Parser.Node> nodes = Parser.parse(sequence);
-        List<Node> newNodes = new ArrayList<>();
+    public static TemplateParser parse(String str) {
+        List<Node> nodes = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder();
-        for (Parser.Node node : nodes) {
+        StringBuilder sb = LOCAL_BUILDER.get();
+        sb.setLength(0);
+        for (Parser.Node node : Parser.parse(str)) {
             switch (node.type) {
                 case STRING:
                     sb.append(node.getValue());
@@ -46,37 +46,37 @@ public class StringParser implements TemplateParser {
                     break;
                 case HEX_COLOR:
                     sb.append(ChatColor.COLOR_CHAR).append('x');
-                    CharSequence seq = node.getValue();
-                    for (int i = 0; i < seq.length(); i++) {
-                        sb.append(ChatColor.COLOR_CHAR).append(seq.charAt(i));
+                    String v = node.getValue();
+                    for (int i = 0; i < v.length(); i++) {
+                        sb.append(ChatColor.COLOR_CHAR).append(v.charAt(i));
                     }
                     break;
                 case VARIABLE:
                     if (sb.length() != 0) {
-                        newNodes.add(new StringNode(sb.toString()));
+                        nodes.add(new StringNode(sb.toString()));
                         sb.setLength(0);
                     }
-                    newNodes.add(new VariableNode(node.getValue().toString()));
+                    nodes.add(new VariableNode(node.getValue()));
                     break;
             }
         }
         if (sb.length() != 0) {
-            newNodes.add(new StringNode(sb.toString()));
+            nodes.add(new StringNode(sb.toString()));
         }
 
         // string only
-        if (newNodes.size() == 0) {
+        if (nodes.size() == 0) {
             return new RawStringParser("");
-        } else if (newNodes.size() == 1 && (newNodes.get(0) instanceof StringNode)) {
-            return new RawStringParser(newNodes.get(0).toString());
+        } else if (nodes.size() == 1 && (nodes.get(0) instanceof StringNode)) {
+            return new RawStringParser(nodes.get(0).toString());
         }
 
-        return new StringParser(newNodes);
+        return new StringParser(nodes);
     }
 
     @Override
     public String toString(TemplateVariable variable) {
-        StringBuilder builder = localBuilder.get();
+        StringBuilder builder = LOCAL_BUILDER.get();
         builder.setLength(0);
 
         for (Node node : nodes) {

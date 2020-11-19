@@ -16,25 +16,25 @@ class Parser {
         MC_COLOR,
     }
 
-    private final CharSequence sequence;
+    private final String str;
 
     // 理論上はLinkedListの方が高速だが、要素数が少ないと予想されるためプリフェッチなどでArrayListの方が高速な可能性がある。
     private final List<Node> nodes = new ArrayList<>();
     private final StringBuilder sb = new StringBuilder();
     private int cursor = 0;
 
-    private Parser(CharSequence sequence) {
-        this.sequence = sequence;
+    private Parser(String str) {
+        this.str = str;
     }
 
     @PackagePrivate
-    static List<Node> parse(CharSequence sequence) {
-        Parser p = new Parser(sequence);
+    static List<Node> parse(String str) {
+        Parser p = new Parser(str);
 
         int pos;
         while ((pos = p.find()) != -1) {
             p.text(p.cursor, pos);
-            switch (sequence.charAt(pos)) {
+            switch (str.charAt(pos)) {
                 case '\\':
                     p.escape(pos);
                     break;
@@ -49,14 +49,14 @@ class Parser {
                     break;
             }
         }
-        p.text(p.cursor, sequence.length());
+        p.text(p.cursor, str.length());
 
         return p.nodes;
     }
 
     private int find() {
-        for (int i = cursor; i < sequence.length(); i++) {
-            switch (sequence.charAt(i)) {
+        for (int i = cursor; i < str.length(); i++) {
+            switch (str.charAt(i)) {
                 case '\\':
                 case '{':
                 case '&':
@@ -87,7 +87,7 @@ class Parser {
 
     private void text(int start, int end) {
         if (start != end) {
-            addString(sequence.subSequence(start, end).toString());
+            addString(str.substring(start, end));
         }
     }
 
@@ -97,7 +97,7 @@ class Parser {
             this.cursor = pos + 1;
             return;
         }
-        char c = sequence.charAt(pos + 1);
+        char c = str.charAt(pos + 1);
         switch (c) {
             case '\\':
             case '{':
@@ -119,15 +119,16 @@ class Parser {
         }
 
         int nest = 1;
-        for (int i = pos + 1; i < sequence.length(); i++) {
-            char c = sequence.charAt(i);
+        for (int i = pos + 1; i < str.length(); i++) {
+            char c = str.charAt(i);
 
             // 入れ子レベル変動
             int j = c == '{' ? +1 : c == '}' ? -1 : 0;
             if (j != 0) {
-                if (sequence.charAt(i - 1) == '\\') { // \{
-                    sb.deleteCharAt(sb.length() - 1); // 前の \ を消す -> "\"なら"{"や"}"に、"\\"なら"\{"や"\}"になるようにする。
-                    if (sequence.charAt(i - 2) == '\\') { // \\{
+                if (str.charAt(i - 1) == '\\') { // \{
+                    // sb.deleteCharAt(sb.length() - 1); // System.arraycopyを発生させる
+                    sb.setLength(sb.length() - 1); // 前の \ を消す -> "\"なら"{"や"}"に、"\\"なら"\{"や"\}"になるようにする。
+                    if (str.charAt(i - 2) == '\\') { // \\{
                         nest += j;
                     }
                 } else {
@@ -136,7 +137,11 @@ class Parser {
             }
 
             if (nest == 0) {
-                nodes.add(new Node(Type.VARIABLE, sb.toString()));
+                // { aaa } こういうパターンの時は使いやすさのために{aaa}として扱う。
+                // { a a } ただし、こういうパターンの時は{a a}として扱う。(そうしないと関数に含まれる文字列で空白を扱えない)
+                // 要するに、最初と最後の空白を削除する -> trim()
+                // trim()はStringBuilderを操作するよりStringでやる方が速い -> https://stackoverflow.com/questions/5212928/how-to-trim-a-Java-stringbuilder
+                nodes.add(new Node(Type.VARIABLE, sb.toString().trim()));
                 sb.setLength(0);
                 this.cursor = i + 1;
                 return;
@@ -156,12 +161,17 @@ class Parser {
             return;
         }
 
-        ChatColor c = ChatColor.getByChar(sequence.charAt(pos + 1));
-        if (c == null) {
+        char c = str.charAt(pos + 1);
+        if (c >= 'A' && c <= 'Z') {
+            c += 32; // 小文字化
+        }
+
+        ChatColor color = ChatColor.getByChar(c);
+        if (color == null) {
             addString("&");
             this.cursor = pos + 1;
         } else {
-            nodes.add(new Node(Type.MC_COLOR, String.valueOf(c.getChar())));
+            nodes.add(new Node(Type.MC_COLOR, String.valueOf(color.getChar())));
             this.cursor = pos + 2;
         }
     }
@@ -173,10 +183,13 @@ class Parser {
             return;
         }
 
-        int lim = Math.min(pos + 7, sequence.length());
+        int lim = Math.min(pos + 7, str.length());
         for (int i = pos + 1; i < lim; i++) {
-            char c = sequence.charAt(i);
-            if (isHex(c)) {
+            char c = str.charAt(i);
+            if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) {
+                sb.append(c);
+            } else if (c >= 'A' && c <= 'F') {
+                c += 32; // 小文字化
                 sb.append(c);
             } else {
                 break;
@@ -202,30 +215,23 @@ class Parser {
         sb.setLength(0);
     }
 
-    private boolean isHex(char c) {
-        if (c >= '0' && c <= '9') {
-            return true;
-        } else return c >= 'a' && c <= 'f';
-    }
-
     private boolean range(int pos, int length) {
-        return pos + length >= sequence.length();
+        return pos + length >= str.length();
     }
 
-    // Node結合(SBで前の値を持っておいて、後から入れ替える？)
     @PackagePrivate
     static class Node {
         @PackagePrivate
         final Type type;
-        private CharSequence value;
+        private String value;
 
-        Node(Type type, CharSequence value) {
+        Node(Type type, String value) {
             this.type = type;
             this.value = value;
         }
 
         @PackagePrivate
-        CharSequence getValue() {
+        String getValue() {
             return value;
         }
     }

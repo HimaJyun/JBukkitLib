@@ -112,6 +112,24 @@ public class StringParserTest {
     }
 
     @Test
+    public void variableTest4() {
+        parser = StringParser.parse("variable { test }");
+        assertEquals(
+            parser.toString(StringVariable.init().put("test", 1)),
+            "variable 1"
+        );
+    }
+
+    @Test
+    public void variableTest5() {
+        parser = StringParser.parse("variable { t e s t }");
+        assertEquals(
+            parser.toString(StringVariable.init().put("t e s t", 1)),
+            "variable 1"
+        );
+    }
+
+    @Test
     public void escapeTest() {
         // \\ \{ \&0 \z \ \
         parser = StringParser.parse("\\\\ \\{ \\&0 \\z \\ \\");
