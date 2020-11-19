@@ -25,6 +25,24 @@ public class StringParserTest {
     }
 
     @Test
+    public void urlTest1() {
+        parser = StringParser.parse("aaa https://example.com/ aaa");
+        assertEquals(parser.toString(),"aaa https://example.com/ aaa");
+    }
+
+    @Test
+    public void urlTest2() {
+        parser = StringParser.parse("https://example.com/ aaa");
+        assertEquals(parser.toString(),"https://example.com/ aaa");
+    }
+
+    @Test
+    public void urlTest3() {
+        parser = StringParser.parse("aaa https://example.com/");
+        assertEquals(parser.toString(),"aaa https://example.com/");
+    }
+
+    @Test
     public void colorCodeTest1() {
         parser = StringParser.parse("&z&0&a&r&");
         assertEquals(parser.toString(), "&z" + ChatColor.BLACK + ChatColor.GREEN + ChatColor.RESET + "&");
@@ -34,6 +52,12 @@ public class StringParserTest {
     public void colorCodeTest2() {
         parser = StringParser.parse("aaa&0&a&r");
         assertEquals(parser.toString(), "aaa"+ChatColor.BLACK + ChatColor.GREEN + ChatColor.RESET);
+    }
+
+    @Test
+    public void colorCodeTest3() {
+        parser = StringParser.parse("A &A A");
+        assertEquals(parser.toString(), "A "+ChatColor.GREEN +" A");
     }
 
     @Test
@@ -82,6 +106,12 @@ public class StringParserTest {
             "\u00A7x\u00A70\u00A70\u00A71\u00A71\u00A72\u00A7234" +
             "\u00A7x\u00A7f\u00A7f\u00A7f\u00A7f\u00A7f\u00A7f" +
             "z123");
+    }
+
+    @Test
+    public void hexColorTest8() {
+        parser = StringParser.parse("AAA #AAA AAA");
+        assertEquals(parser.toString(), "AAA \u00A7x\u00A7a\u00A7a\u00A7a\u00A7a\u00A7a\u00A7a AAA");
     }
 
     @Test

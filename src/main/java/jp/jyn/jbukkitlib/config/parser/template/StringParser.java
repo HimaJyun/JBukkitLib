@@ -38,6 +38,7 @@ public class StringParser implements TemplateParser {
         sb.setLength(0);
         for (Parser.Node node : Parser.parse(str)) {
             switch (node.type) {
+                case URL:
                 case STRING:
                     sb.append(node.getValue());
                     break;

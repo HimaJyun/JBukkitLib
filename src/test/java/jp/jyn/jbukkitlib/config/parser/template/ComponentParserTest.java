@@ -1,6 +1,5 @@
 package jp.jyn.jbukkitlib.config.parser.template;
 
-import jp.jyn.jbukkitlib.config.parser.template.variable.ComponentFunction;
 import jp.jyn.jbukkitlib.config.parser.template.variable.ComponentVariable;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -102,17 +101,17 @@ class ComponentParserTest {
     @Test
     public void escapeTest() {
         // && &{ &&0 &z & &
-        parser = ComponentParser.parse("&& &{ &&0 &z & &");
+        parser = ComponentParser.parse("\\\\ \\{ \\&0 \\z \\ \\");
         TextComponent[] c = parser.getComponents();
         assertEquals(c.length, 1);
-        assertEquals(c[0].getText(), "& { &0 &z & &");
+        assertEquals(c[0].getText(), "\\ { &0 \\z \\ \\");
     }
 
     @Test
     public void urlTest() {
-        parser = ComponentParser.parse("https://example.com/");
+        parser = ComponentParser.parse("https://example.com/ aaa");
         TextComponent[] c = parser.getComponents();
-        BaseComponent[] b = legacy("https://example.com/");
+        BaseComponent[] b = legacy("https://example.com/ aaa");
 
         assertArrayEquals(c, b);
     }
@@ -122,7 +121,7 @@ class ComponentParserTest {
         String[] ary = new String[]{"a", "b", "c", "d"};
         parser = ComponentParser.parse("{function(\",\")}");
 
-        TextComponent[] c = parser.getComponents(ComponentFunction.init().put("function", (co, a) -> co.setText(String.join(a[0], ary))));
+        TextComponent[] c = parser.getComponents(ComponentVariable.init().put("function", (co, a) -> co.setText(String.join(a[0], ary))));
         assertEquals(c.length, 1);
 
         assertEquals(c[0].getText(), String.join(",", ary));

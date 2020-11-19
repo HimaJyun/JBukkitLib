@@ -3,8 +3,10 @@ package jp.jyn.jbukkitlib.config.parser.template;
 import jp.jyn.jbukkitlib.util.PackagePrivate;
 import org.bukkit.ChatColor;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @PackagePrivate
 class Parser {
@@ -14,44 +16,76 @@ class Parser {
         VARIABLE,
         HEX_COLOR,
         MC_COLOR,
+        URL,
     }
-
-    private final String str;
 
     // 理論上はLinkedListの方が高速だが、要素数が少ないと予想されるためプリフェッチなどでArrayListの方が高速な可能性がある。
     private final List<Node> nodes = new ArrayList<>();
     private final StringBuilder sb = new StringBuilder();
     private int cursor = 0;
+    private String str;
 
-    private Parser(String str) {
-        this.str = str;
-    }
+    private Parser() { }
 
     @PackagePrivate
     static List<Node> parse(String str) {
-        Parser p = new Parser(str);
+        Parser p = new Parser();
 
-        int pos;
-        while ((pos = p.find()) != -1) {
-            p.text(p.cursor, pos);
-            switch (str.charAt(pos)) {
-                case '\\':
-                    p.escape(pos);
-                    break;
-                case '{':
-                    p.variable(pos);
-                    break;
-                case '&':
-                    p.color(pos);
-                    break;
-                case '#':
-                    p.hex(pos);
-                    break;
+        for (Map.Entry<Boolean, String> entry : split(str)) {
+            if (entry.getKey()) {
+                p.nodes.add(new Node(Type.URL, entry.getValue()));
+                continue;
             }
+
+            p.str = entry.getValue();
+            p.cursor = 0;
+            int pos;
+            while ((pos = p.find()) != -1) {
+                p.text(p.cursor, pos);
+                switch (p.str.charAt(pos)) {
+                    case '\\':
+                        p.escape(pos);
+                        break;
+                    case '{':
+                        p.variable(pos);
+                        break;
+                    case '&':
+                        p.color(pos);
+                        break;
+                    case '#':
+                        p.hex(pos);
+                        break;
+                }
+            }
+            p.text(p.cursor, p.str.length());
         }
-        p.text(p.cursor, str.length());
 
         return p.nodes;
+    }
+
+    private static List<Map.Entry<Boolean, String>> split(String str) {
+        // URLには#や&が含まれており誤パースの可能性が高いから先に分割する
+        // Spigotの挙動と異なる点あり
+        List<Map.Entry<Boolean, String>> list = new ArrayList<>();
+
+        int last = 0;
+        int pos = 0;
+        while ((pos = str.indexOf("http", pos)) != -1) {
+            list.add(new AbstractMap.SimpleImmutableEntry<>(false, str.substring(last, pos)));
+
+            if (str.startsWith("https://", pos) || str.startsWith("http://", pos)) {
+                int start = pos;
+                if ((pos = str.indexOf(' ', start)) == -1) {
+                    pos = str.length();
+                }
+                list.add(new AbstractMap.SimpleImmutableEntry<>(true, str.substring(start, pos)));
+            }
+
+            last = pos;
+        }
+
+        list.add(new AbstractMap.SimpleImmutableEntry<>(false, str.substring(last)));
+        return list;
     }
 
     private int find() {
@@ -234,5 +268,108 @@ class Parser {
         String getValue() {
             return value;
         }
+    }
+
+    /**
+     * Valid format
+     * <ul>
+     *     <li>aaa()            -> aaa []              (allowed empty arguments)</li>
+     *     <li>aaa(bbb)         -> aaa ["bbb"]         (arguments enclosed by parentheses)</li>
+     *     <li>aaa(bbb,ccc)     -> aaa ["bbb","ccc"]   (arguments delimited by comma)</li>
+     *     <li>aaa(b\,b,ccc)    -> aaa ["b,b","ccc"]   (comma escaped by back-slash)</li>
+     *     <li>aaa(b\"bb,ccc)   -> aaa ["b\"bb","ccc"] (quote escaped by back-slash)</li>
+     *     <li>aaa(b\)bb,ccc)   -> aaa ["b)bb","ccc"]  (close parentheses escaped by back-slash)</li>
+     *     <li>aaa(b\\bb,ccc)   -> aaa ["b\bb","ccc"]  (back-slash escaped by back-slash)</li>
+     *     <li>aaa(b\bb,ccc)    -> aaa ["b\bb","ccc"]  (escape only for back-slash, quote, comma or close parentheses)</li>
+     *     <li>aaa(b b b,ccc)   -> aaa ["bbb","ccc"]   (white-space ignored)</li>
+     *     <li>aaa("b b b",ccc) -> aaa ["b b b","ccc"] (white-space allowed only in quote)</li>
+     *     <li>aaa("b,)b",ccc)  -> aaa ["b,)b","ccc"]  (comma and close parentheses can be omit in quote)</li>
+     * </ul>
+     * function name is allowed  in any characters except parentheses. (even if it empty)<br>
+     * but, common characters ([a-zA-Z0-9_]) are recommended.
+     *
+     * @param str input string
+     * @return parsed value (key=name, value=args)
+     */
+    @PackagePrivate
+    static Map.Entry<String, String[]> parseFunction(String str) {
+        String name;
+        List<String> args = new ArrayList<>(); // 初期容量(=10)を超えさえしなければ、LinkedListより速い -> 引数の個数が10を超える可能性は低い
+
+        int argsIndex = str.indexOf('(');
+        if (argsIndex == -1) {
+            throw new IllegalArgumentException("Not a function");
+        }
+        name = str.substring(0, argsIndex);
+
+        String rawArgs = str.substring(argsIndex + 1);
+        if (rawArgs.length() == 1 && rawArgs.charAt(0) == ')') {
+            // empty args
+            return new AbstractMap.SimpleImmutableEntry<>(name, new String[0]);
+        }
+
+        StringBuilder buf = new StringBuilder();
+        boolean escape = false;
+        boolean quote = false;
+
+        // OUT: for...IDEA settings does not support this style.
+        OUT:
+        for (int i = 0; i < rawArgs.length(); i++) {
+            char c = rawArgs.charAt(i);
+
+            if (escape) {
+                switch (c) {
+                    case '"':
+                    case '\\':
+                    case ',':
+                    case ')': // \" \\ \, ) -> " \ , )
+                        buf.append(c);
+                        break;
+                    default: // \a -> \a
+                        buf.append('\\').append(c);
+                        break;
+                }
+                escape = false;
+                continue;
+            }
+
+            if (quote) {
+                switch (c) {
+                    case '\\':
+                        escape = true;
+                        break;
+                    case '"':
+                        quote = false;
+                        break;
+                    default:
+                        buf.append(c);
+                        break;
+                }
+                continue;
+            }
+
+            switch (c) {
+                case '"':
+                    quote = true;
+                    continue;
+                case '\\':
+                    escape = true;
+                    continue;
+                case ' ':
+                    continue;
+                case ',':
+                    args.add(buf.toString());
+                    buf.setLength(0);
+                    continue;
+                case ')':
+                    break OUT;
+                default:
+                    buf.append(c);
+                    break;
+            }
+        }
+        args.add(buf.toString());
+
+        return new AbstractMap.SimpleImmutableEntry<>(name, args.toArray(new String[0]));
     }
 }
