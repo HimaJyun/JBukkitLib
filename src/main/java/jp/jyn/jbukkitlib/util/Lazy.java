@@ -9,7 +9,7 @@ import java.util.function.Supplier;
  * @param <T> This Lazy type
  */
 @FunctionalInterface
-public interface Lazy<T> {
+public interface Lazy<T> extends Supplier<T> {
     /**
      * Get Object
      *

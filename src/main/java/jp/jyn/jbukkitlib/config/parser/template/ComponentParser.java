@@ -1,23 +1,23 @@
 package jp.jyn.jbukkitlib.config.parser.template;
 
-import jp.jyn.jbukkitlib.config.parser.template.variable.ComponentFunction;
 import jp.jyn.jbukkitlib.config.parser.template.variable.ComponentVariable;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <p>TextComponent template parser (Thread-safe)</p>
@@ -25,14 +25,13 @@ import java.util.function.Consumer;
  * <ul>
  * <li>{function(arg1,arg2)} -&gt; function</li>
  * <li>{variable} -&gt; variable</li>
- * <li>&amp; -&gt; escape</li>
  * <li>&amp;(char) -&gt; ColorCode</li>
- * <li>&amp;&amp; -&gt; &amp;</li>
+ * <li>#ffffff -&gt; hex color</li>
+ * <li>\ -&gt; escape</li>
  * </ul>
  */
-public class ComponentParser extends AbstractParser {
+public class ComponentParser {
     private final static ComponentVariable EMPTY_VARIABLE = ComponentVariable.init();
-    private final static ComponentFunction EMPTY_FUNCTION = ComponentFunction.init();
 
     private final Node[] node;
 
@@ -43,36 +42,15 @@ public class ComponentParser extends AbstractParser {
     /**
      * Getting TextComponent
      *
-     * @param variable Variable
-     * @param function Function
-     * @return TextComponent array
-     */
-    public TextComponent[] getComponents(ComponentVariable variable, ComponentFunction function) {
-        TextComponent[] components = new TextComponent[node.length];
-        for (int i = 0; i < node.length; i++) {
-            components[i] = node[i].apply(variable, function);
-        }
-        return components;
-    }
-
-    /**
-     * Getting TextComponent
-     *
-     * @param variable Variable
+     * @param variable variable
      * @return TextComponent array
      */
     public TextComponent[] getComponents(ComponentVariable variable) {
-        return getComponents(variable, EMPTY_FUNCTION);
-    }
-
-    /**
-     * Getting TextComponent
-     *
-     * @param function Function
-     * @return TextComponent array
-     */
-    public TextComponent[] getComponents(ComponentFunction function) {
-        return getComponents(EMPTY_VARIABLE, function);
+        TextComponent[] components = new TextComponent[node.length];
+        for (int i = 0; i < node.length; i++) {
+            components[i] = node[i].apply(variable);
+        }
+        return components;
     }
 
     /**
@@ -81,42 +59,19 @@ public class ComponentParser extends AbstractParser {
      * @return TextComponent array
      */
     public TextComponent[] getComponents() {
-        return getComponents(EMPTY_VARIABLE, EMPTY_FUNCTION);
+        return getComponents(EMPTY_VARIABLE);
     }
 
     /**
      * Sending action bar
      *
      * @param player   target player
-     * @param variable Variable
-     * @param function Function
-     * @return for method chain
-     */
-    public ComponentParser actionbar(Player player, ComponentVariable variable, ComponentFunction function) {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, getComponents(variable, function));
-        return this;
-    }
-
-    /**
-     * Sending action bar
-     *
-     * @param player   target player
-     * @param variable Variable
+     * @param variable variable
      * @return for method chain
      */
     public ComponentParser actionbar(Player player, ComponentVariable variable) {
-        return actionbar(player, variable, EMPTY_FUNCTION);
-    }
-
-    /**
-     * Sending action bar
-     *
-     * @param player   target player
-     * @param function Function
-     * @return for method chain
-     */
-    public ComponentParser actionbar(Player player, ComponentFunction function) {
-        return actionbar(player, EMPTY_VARIABLE, function);
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, getComponents(variable));
+        return this;
     }
 
     /**
@@ -126,42 +81,19 @@ public class ComponentParser extends AbstractParser {
      * @return for method chain
      */
     public ComponentParser actionbar(Player player) {
-        return actionbar(player, EMPTY_VARIABLE, EMPTY_FUNCTION);
+        return actionbar(player, EMPTY_VARIABLE);
     }
 
     /**
-     * Sending system message
+     * Sending message
      *
-     * @param player   target player
-     * @param variable Variable
-     * @param function Function
+     * @param sender   target sender
+     * @param variable variable
      * @return for method chain
      */
-    public ComponentParser send(Player player, ComponentVariable variable, ComponentFunction function) {
-        player.spigot().sendMessage(ChatMessageType.SYSTEM, getComponents(variable, function));
+    public ComponentParser send(CommandSender sender, ComponentVariable variable) {
+        sender.spigot().sendMessage(getComponents(variable));
         return this;
-    }
-
-    /**
-     * Sending system message
-     *
-     * @param player   target player
-     * @param variable Variable
-     * @return for method chain
-     */
-    public ComponentParser send(Player player, ComponentVariable variable) {
-        return send(player, variable, EMPTY_FUNCTION);
-    }
-
-    /**
-     * Sending system message
-     *
-     * @param player   target player
-     * @param function Function
-     * @return for method chain
-     */
-    public ComponentParser send(Player player, ComponentFunction function) {
-        return send(player, EMPTY_VARIABLE, function);
     }
 
     /**
@@ -171,39 +103,18 @@ public class ComponentParser extends AbstractParser {
      * @return for method chain
      */
     public ComponentParser send(Player player) {
-        return send(player, EMPTY_VARIABLE, EMPTY_FUNCTION);
+        return send(player, EMPTY_VARIABLE);
     }
 
     /**
      * Sending broadcast message
      *
-     * @param variable Variable
-     * @param function Function
-     * @return for method chain
-     */
-    public ComponentParser broadcast(ComponentVariable variable, ComponentFunction function) {
-        Bukkit.spigot().broadcast(getComponents(variable, function));
-        return this;
-    }
-
-    /**
-     * Sending broadcast message
-     *
-     * @param variable Variable
+     * @param variable variable
      * @return for method chain
      */
     public ComponentParser broadcast(ComponentVariable variable) {
-        return broadcast(variable, EMPTY_FUNCTION);
-    }
-
-    /**
-     * Sending broadcast message
-     *
-     * @param function Function
-     * @return for method chain
-     */
-    public ComponentParser broadcast(ComponentFunction function) {
-        return broadcast(EMPTY_VARIABLE, function);
+        Bukkit.spigot().broadcast(getComponents(variable));
+        return this;
     }
 
     /**
@@ -212,9 +123,109 @@ public class ComponentParser extends AbstractParser {
      * @return for method chain
      */
     public ComponentParser broadcast() {
-        return broadcast(EMPTY_VARIABLE, EMPTY_FUNCTION);
+        return broadcast(EMPTY_VARIABLE);
     }
 
+    /**
+     * Sending broadcast message
+     *
+     * @param variable variable
+     * @param console  if true, it will be displayed on the console.
+     * @return for method chain
+     */
+    public ComponentParser broadcast(ComponentVariable variable, boolean console) {
+        TextComponent[] components = getComponents(variable);
+        if (console) {
+            Bukkit.getConsoleSender().spigot().sendMessage(components);
+        }
+        Bukkit.spigot().broadcast(components);
+        return this;
+    }
+
+    /**
+     * Sending broadcast message
+     *
+     * @param console If true, it will be displayed on the console.
+     * @return for method chain
+     */
+    public ComponentParser broadcast(boolean console) {
+        return broadcast(EMPTY_VARIABLE, console);
+    }
+
+    /**
+     * Display a text on the console.
+     *
+     * @param variable variable
+     * @return for method chain
+     */
+    public ComponentParser console(ComponentVariable variable) {
+        Bukkit.getConsoleSender().spigot().sendMessage(getComponents(variable));
+        return this;
+    }
+
+    /**
+     * Display a text on the console.
+     *
+     * @return for method chain
+     */
+    public ComponentParser console() {
+        return console(EMPTY_VARIABLE);
+    }
+
+    /**
+     * Logs at the specified log level.
+     *
+     * @param variable variable
+     * @param logger   logger
+     * @param level    log level
+     * @return for method chain
+     */
+    public ComponentParser log(ComponentVariable variable, Logger logger, Level level) {
+        logger.log(level, getText(variable));
+        return this;
+    }
+
+    /**
+     * Logs at the specified log level.
+     *
+     * @param logger logger
+     * @param level  log level
+     * @return for method chain
+     */
+    public ComponentParser log(Logger logger, Level level) {
+        return log(EMPTY_VARIABLE, logger, level);
+    }
+
+    /**
+     * Gets the text of this object.
+     * This method removes the decoration. Use {@link ComponentParser#getComponents(ComponentVariable)} if you need decoration.
+     *
+     * @return Parsed text
+     */
+    public String getText(ComponentVariable variable) {
+        StringBuilder sb = new StringBuilder(); // たぶんそこまで呼び出し回数多くないので都度作成する (使いまわさない)
+        for (TextComponent component : getComponents(variable)) {
+            sb.append(component.getText());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Gets the text of this object.
+     * This method removes the decoration. Use {@link ComponentParser#getComponents()} if you need decoration.
+     *
+     * @return Parsed text
+     */
+    public String getText() {
+        return getText(EMPTY_VARIABLE);
+    }
+
+    /**
+     * Returns a String representation of this object.
+     * This method is not meant to get the text of this object. Use {@link ComponentParser#getText()} in such cases.
+     *
+     * @return String representation
+     */
     @Override
     public String toString() {
         return "ComponentParser{" + Arrays.toString(node) + '}';
@@ -223,95 +234,83 @@ public class ComponentParser extends AbstractParser {
     /**
      * Parses a string.
      *
-     * @param sequence Char sequence
+     * @param str input value.
      * @return Parsed value.
      */
-    public static ComponentParser parse(CharSequence sequence) {
-        Queue<String> expr = exprQueue(sequence);
-        List<Node> node = new LinkedList<>();
+    public static ComponentParser parse(String str) {
+        // see net.md_5.bungee.api.chat.TextComponent#fromLegacyText
+        final ChatColor DEFAULT_COLOR = ChatColor.WHITE;
 
-        StringBuilder buf = new StringBuilder();
-        TextComponent last = new TextComponent();
-        while (!expr.isEmpty()) {
-            String fragment = expr.remove();
-            if (fragment.isEmpty()) {
-                continue;
-            }
-            char first = fragment.charAt(0);
+        List<Node> nodes = new ArrayList<>();
+        TextComponent component = new TextComponent();
+        for (Parser.Node node : Parser.parse(str)) {
+            switch (node.type) {
+                case HEX_COLOR:
+                    // &k#aaa みたいにすると前の&kは消されてしまうが、Spigotのコードがそうなっているのでここではその挙動を真似る
+                    component = new TextComponent();
+                    component.setColor(ChatColor.of('#' + node.getValue()));
+                    break;
 
-            // { first && } last -> variable or function
-            if (first == '{' && fragment.charAt(fragment.length() - 1) == '}') {
-                if (buf.length() != 0) {
-                    BaseComponent[] components = TextComponent.fromLegacyText(buf.toString());
-                    buf.setLength(0);
-
-                    components[0].copyFormatting(last, ComponentBuilder.FormatRetention.FORMATTING, false);
-                    last = (TextComponent) components[components.length - 1];
-
-                    for (BaseComponent component : components) {
-                        // fromLegacyText is always TextComponents
-                        node.add(new TextNode((TextComponent) component));
+                case MC_COLOR:
+                    ChatColor c = ChatColor.getByChar(node.getValue().charAt(0));
+                    if (c == null) { // たぶん到達不能
+                        throw new IllegalArgumentException("Invalid color format: " + node.getValue());
                     }
-                }
+                    if (c == ChatColor.BOLD) {
+                        component.setBold(true);
+                    } else if (c == ChatColor.ITALIC) {
+                        component.setItalic(true);
+                    } else if (c == ChatColor.UNDERLINE) {
+                        component.setUnderlined(true);
+                    } else if (c == ChatColor.STRIKETHROUGH) {
+                        component.setStrikethrough(true);
+                    } else if (c == ChatColor.MAGIC) {
+                        component.setObfuscated(true);
+                    } else if (c == ChatColor.RESET) {
+                        component = new TextComponent();
+                        component.setColor(DEFAULT_COLOR);
+                    } else {
+                        // やはり&k&a みたいに色指定が装飾より後ろにあると打ち消されるが、Spigotに合わせる
+                        component = new TextComponent();
+                        component.setColor(c);
+                    }
+                    break;
 
-                String name = fragment.substring(1, fragment.length() - 1);
-                TextComponent component = new TextComponent(last);
+                case STRING:
+                    TextComponent text = component;
+                    component = new TextComponent(text);
+                    text.setText(node.getValue());
+                    nodes.add(new TextNode(text));
+                    break;
 
-                // contains ( -> function()
-                if (name.indexOf('(') >= 0) {
-                    Map.Entry<String, String[]> func = parseFunction(name);
-                    node.add(new FunctionNode(component, func.getKey(), func.getValue()));
-                } else {
-                    node.add(new VariableNode(component, name));
-                }
+                case URL:
+                    TextComponent url = component;
+                    component = new TextComponent(url);
+                    component.setText(node.getValue());
+                    component.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, node.getValue()));
+                    nodes.add(new TextNode(component));
+                    component = url;
+                    break;
 
-                last = component;
-                continue;
-            }
+                case VARIABLE:
+                    TextComponent variable = component;
+                    component = new TextComponent(variable);
 
-            // &{ &1 &z...
-            if (first == '&') {
-                char second = fragment.charAt(1);
-                switch (second) { // escape
-                    case '{':
-                    case '}':
-                    case '&':
-                        buf.append(second);
-                        continue;
-                }
-
-                ChatColor color = ChatColor.getByChar(second);
-                if (color == null) {
-                    // &z -> &z
-                    buf.append(first).append(second);
-                } else {
-                    // &1 &2 -> ChatColor
-                    buf.append(color.toString());
-                }
-                continue;
-            }
-
-            // others...
-            buf.append(fragment);
-        }
-
-        if (buf.length() != 0) {
-            BaseComponent[] components = TextComponent.fromLegacyText(buf.toString());
-            buf.setLength(0);
-
-            components[0].copyFormatting(last, ComponentBuilder.FormatRetention.FORMATTING, false);
-
-            for (BaseComponent component : components) {
-                // fromLegacyText is always TextComponents
-                node.add(new TextNode((TextComponent) component));
+                    if (node.getValue().indexOf('(') != -1) {
+                        Map.Entry<String, String[]> func = Parser.parseFunction(node.getValue());
+                        nodes.add(new FunctionNode(variable, func.getKey(), func.getValue()));
+                    } else {
+                        nodes.add(new VariableNode(variable, node.getValue()));
+                    }
+                    break;
             }
         }
 
-        return new ComponentParser(node);
+        return new ComponentParser(nodes);
     }
 
     private interface Node {
-        TextComponent apply(ComponentVariable variable, ComponentFunction function);
+        TextComponent apply(ComponentVariable variable);
     }
 
     private static class TextNode implements Node {
@@ -322,7 +321,7 @@ public class ComponentParser extends AbstractParser {
         }
 
         @Override
-        public TextComponent apply(ComponentVariable variable, ComponentFunction function) {
+        public TextComponent apply(ComponentVariable variable) {
             return component;
         }
 
@@ -342,10 +341,10 @@ public class ComponentParser extends AbstractParser {
         }
 
         @Override
-        public TextComponent apply(ComponentVariable variable, ComponentFunction function) {
+        public TextComponent apply(ComponentVariable variable) {
             TextComponent newComponent = component.duplicate();
 
-            Consumer<TextComponent> consumer = variable.get(name);
+            Consumer<TextComponent> consumer = variable.getVariable(name);
             if (consumer == null) {
                 consumer = c -> c.setText("{" + name + "}"); // unknown variable(typo... etc)
             }
@@ -375,10 +374,10 @@ public class ComponentParser extends AbstractParser {
         }
 
         @Override
-        public TextComponent apply(ComponentVariable variable, ComponentFunction function) {
+        public TextComponent apply(ComponentVariable variable) {
             TextComponent newComponent = component.duplicate();
 
-            BiConsumer<TextComponent, String[]> consumer = function.get(name);
+            BiConsumer<TextComponent, String[]> consumer = variable.getFunction(name);
             if (consumer == null) {
                 consumer = (c, a) -> c.setText("{" + name + "(" + String.join(",", a) + ")" + "}"); // unknown function
             }

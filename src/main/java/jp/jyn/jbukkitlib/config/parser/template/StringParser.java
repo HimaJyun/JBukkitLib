@@ -6,20 +6,19 @@ import org.bukkit.ChatColor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 
 /**
- * <p>Simple template parser</p>
+ * <p>Simple template parser (Thread-Safe)</p>
  * <p>Available format:</p>
  * <ul>
  * <li>{variable} -&gt; variable</li>
- * <li>&amp; -&gt; escape</li>
  * <li>&amp;(char) -&gt; ColorCode</li>
- * <li>&amp;&amp; -&gt; &amp;</li>
+ * <li>#ffffff -&gt; hex color</li>
+ * <li>\ -&gt; escape</li>
  * </ul>
  */
-public class StringParser extends AbstractParser implements TemplateParser {
-    protected final static ThreadLocal<StringBuilder> localBuilder = ThreadLocal.withInitial(StringBuilder::new);
+public class StringParser implements TemplateParser {
+    private final static ThreadLocal<StringBuilder> LOCAL_BUILDER = ThreadLocal.withInitial(StringBuilder::new);
     private final List<Node> nodes;
 
     private StringParser(List<Node> nodes) {
@@ -29,82 +28,56 @@ public class StringParser extends AbstractParser implements TemplateParser {
     /**
      * Parses a string.
      *
-     * @param sequence Char sequence
+     * @param str input value.
      * @return Parsed value.
      */
-    public static TemplateParser parse(CharSequence sequence) {
-        Queue<String> expr = exprQueue(sequence);
-        List<Node> nodes = new ArrayList<>(expr.size());
-        while (!expr.isEmpty()) {
-            String value = expr.remove();
-            if (value.isEmpty()) {
-                continue;
-            }
-            char c = value.charAt(0);
+    public static TemplateParser parse(String str) {
+        List<Node> nodes = new ArrayList<>();
 
-            if (c == '{' && value.charAt(value.length() - 1) == '}') { // variable
-                nodes.add(new VariableNode(value.substring(1, value.length() - 1)));
-                continue;
-            }
-
-            if (c == '&') {
-                char c2 = value.charAt(1);
-                switch (c2) { // escape
-                    case '{':
-                    case '}':
-                    case '&':
-                        nodes.add(new StringNode(Character.toString(c2)));
-                        continue;
-                }
-
-                ChatColor color = ChatColor.getByChar(c2);
-                if (color != null) {
-                    // &1 &2 -> ChatColor
-                    nodes.add(new StringNode(color.toString()));
-                } else {
-                    // &z -> &z
-                    nodes.add(new StringNode(value));
-                }
-                continue;
-            }
-
-            // string
-            nodes.add(new StringNode(value));
-        }
-
-        // concat string nodes.
-        List<Node> newNodes = new ArrayList<>(nodes.size());
-        StringBuilder buf = localBuilder.get();
-        buf.setLength(0);
-
-        for (Node node : nodes) {
-            if (node.isImmutable()) {
-                buf.append(node.toString());
-            } else {
-                if (buf.length() != 0) {
-                    newNodes.add(new StringNode(buf.toString()));
-                    buf.setLength(0);
-                }
-                newNodes.add(node);
+        StringBuilder sb = LOCAL_BUILDER.get();
+        sb.setLength(0);
+        for (Parser.Node node : Parser.parse(str)) {
+            switch (node.type) {
+                case URL:
+                case STRING:
+                    sb.append(node.getValue());
+                    break;
+                case MC_COLOR:
+                    sb.append(ChatColor.COLOR_CHAR).append(node.getValue());
+                    break;
+                case HEX_COLOR:
+                    sb.append(ChatColor.COLOR_CHAR).append('x');
+                    String v = node.getValue();
+                    for (int i = 0; i < v.length(); i++) {
+                        sb.append(ChatColor.COLOR_CHAR).append(v.charAt(i));
+                    }
+                    break;
+                case VARIABLE:
+                    if (sb.length() != 0) {
+                        nodes.add(new StringNode(sb.toString()));
+                        sb.setLength(0);
+                    }
+                    nodes.add(new VariableNode(node.getValue()));
+                    break;
             }
         }
-        if (buf.length() != 0) {
-            newNodes.add(new StringNode(buf.toString()));
+        if (sb.length() != 0) {
+            nodes.add(new StringNode(sb.toString()));
         }
 
         // string only
-        if (newNodes.size() == 0) {
+        if (nodes.size() == 0) {
             return new RawStringParser("");
-        } else if (newNodes.size() == 1 && newNodes.get(0).isImmutable()) {
-            return new RawStringParser(newNodes.get(0).toString());
+        } else if (nodes.size() == 1 && (nodes.get(0) instanceof StringNode)) {
+            return new RawStringParser(nodes.get(0).toString());
         }
 
-        return new StringParser(newNodes);
+        return new StringParser(nodes);
     }
 
     @Override
     public String toString(TemplateVariable variable) {
-        StringBuilder builder = localBuilder.get();
+        StringBuilder builder = LOCAL_BUILDER.get();
         builder.setLength(0);
 
         for (Node node : nodes) {
@@ -121,8 +94,6 @@ public class StringParser extends AbstractParser implements TemplateParser {
 
     private interface Node {
         void toString(StringBuilder builder, TemplateVariable variable);
-
-        boolean isImmutable();
     }
 
     private static class StringNode implements Node {
@@ -140,11 +111,6 @@ public class StringParser extends AbstractParser implements TemplateParser {
         @Override
         public String toString() {
             return value;
-        }
-
-        @Override
-        public boolean isImmutable() {
-            return true;
         }
     }
 
@@ -169,11 +135,6 @@ public class StringParser extends AbstractParser implements TemplateParser {
         @Override
         public String toString() {
             return "{" + key + "}";
-        }
-
-        @Override
-        public boolean isImmutable() {
-            return false;
         }
     }
 }

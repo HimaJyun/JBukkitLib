@@ -168,7 +168,7 @@ public class ExpressionParser {
         u.put("sqrt", Math::sqrt);
         u.put("cbrt", Math::cbrt);
         u.put("signum", Math::signum);
-        u.put("negative", d -> -d);
+        u.put("reverse", d -> -d);
         UNARY_FUNCTIONS = Collections.unmodifiableMap(u);
 
         Map<String, DoubleBinaryOperator> b = new HashMap<>();
