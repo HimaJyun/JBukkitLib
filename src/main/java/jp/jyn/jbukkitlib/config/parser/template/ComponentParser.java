@@ -6,6 +6,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -15,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <p>TextComponent template parser (Thread-safe)</p>
@@ -39,7 +42,7 @@ public class ComponentParser {
     /**
      * Getting TextComponent
      *
-     * @param variable Variable
+     * @param variable variable
      * @return TextComponent array
      */
     public TextComponent[] getComponents(ComponentVariable variable) {
@@ -63,7 +66,7 @@ public class ComponentParser {
      * Sending action bar
      *
      * @param player   target player
-     * @param variable Variable
+     * @param variable variable
      * @return for method chain
      */
     public ComponentParser actionbar(Player player, ComponentVariable variable) {
@@ -82,14 +85,14 @@ public class ComponentParser {
     }
 
     /**
-     * Sending system message
+     * Sending message
      *
-     * @param player   target player
-     * @param variable Variable
+     * @param sender   target sender
+     * @param variable variable
      * @return for method chain
      */
-    public ComponentParser send(Player player, ComponentVariable variable) {
-        player.spigot().sendMessage(ChatMessageType.SYSTEM, getComponents(variable));
+    public ComponentParser send(CommandSender sender, ComponentVariable variable) {
+        sender.spigot().sendMessage(getComponents(variable));
         return this;
     }
 
@@ -106,7 +109,7 @@ public class ComponentParser {
     /**
      * Sending broadcast message
      *
-     * @param variable Variable
+     * @param variable variable
      * @return for method chain
      */
     public ComponentParser broadcast(ComponentVariable variable) {
@@ -123,6 +126,106 @@ public class ComponentParser {
         return broadcast(EMPTY_VARIABLE);
     }
 
+    /**
+     * Sending broadcast message
+     *
+     * @param variable variable
+     * @param console  if true, it will be displayed on the console.
+     * @return for method chain
+     */
+    public ComponentParser broadcast(ComponentVariable variable, boolean console) {
+        TextComponent[] components = getComponents(variable);
+        if (console) {
+            Bukkit.getConsoleSender().spigot().sendMessage(components);
+        }
+        Bukkit.spigot().broadcast(components);
+        return this;
+    }
+
+    /**
+     * Sending broadcast message
+     *
+     * @param console If true, it will be displayed on the console.
+     * @return for method chain
+     */
+    public ComponentParser broadcast(boolean console) {
+        return broadcast(EMPTY_VARIABLE, console);
+    }
+
+    /**
+     * Display a text on the console.
+     *
+     * @param variable variable
+     * @return for method chain
+     */
+    public ComponentParser console(ComponentVariable variable) {
+        Bukkit.getConsoleSender().spigot().sendMessage(getComponents(variable));
+        return this;
+    }
+
+    /**
+     * Display a text on the console.
+     *
+     * @return for method chain
+     */
+    public ComponentParser console() {
+        return console(EMPTY_VARIABLE);
+    }
+
+    /**
+     * Logs at the specified log level.
+     *
+     * @param variable variable
+     * @param logger   logger
+     * @param level    log level
+     * @return for method chain
+     */
+    public ComponentParser log(ComponentVariable variable, Logger logger, Level level) {
+        logger.log(level, getText(variable));
+        return this;
+    }
+
+    /**
+     * Logs at the specified log level.
+     *
+     * @param logger logger
+     * @param level  log level
+     * @return for method chain
+     */
+    public ComponentParser log(Logger logger, Level level) {
+        return log(EMPTY_VARIABLE, logger, level);
+    }
+
+    /**
+     * Gets the text of this object.
+     * This method removes the decoration. Use {@link ComponentParser#getComponents(ComponentVariable)} if you need decoration.
+     *
+     * @return Parsed text
+     */
+    public String getText(ComponentVariable variable) {
+        StringBuilder sb = new StringBuilder(); // たぶんそこまで呼び出し回数多くないので都度作成する (使いまわさない)
+        for (TextComponent component : getComponents(variable)) {
+            sb.append(component.getText());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Gets the text of this object.
+     * This method removes the decoration. Use {@link ComponentParser#getComponents()} if you need decoration.
+     *
+     * @return Parsed text
+     */
+    public String getText() {
+        return getText(EMPTY_VARIABLE);
+    }
+
+    /**
+     * Returns a String representation of this object.
+     * This method is not meant to get the text of this object. Use {@link ComponentParser#getText()} in such cases.
+     *
+     * @return String representation
+     */
     @Override
     public String toString() {
         return "ComponentParser{" + Arrays.toString(node) + '}';

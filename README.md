@@ -17,7 +17,7 @@ Add Maven dependency
         <dependency>
             <groupId>jp.jyn</groupId>
             <artifactId>JBukkitLib</artifactId>
-            <version>1.4.0</version>
+            <version>1.5.0</version>
         </dependency>
     </dependencies>
 </project>
@@ -62,6 +62,7 @@ It is recommended to "relocation" to prevent conflicts with different versions i
 # Version
 |Version|Bukkit|Java|
 |:------|:-----|:---|
+|1.5.0|1.16.4-R0.1-SNAPSHOT|8|
 |1.4.0|1.15.2-R0.1-SNAPSHOT|8|
 |1.3.0|1.15.2-R0.1-SNAPSHOT|8|
 |1.2.0|1.14.4-R0.1-SNAPSHOT|8|
