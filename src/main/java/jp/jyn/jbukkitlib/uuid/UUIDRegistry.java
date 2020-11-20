@@ -83,8 +83,11 @@ public class UUIDRegistry {
             nameToUUIDCache = (Map<String, Optional<UUID>>) getProperty.apply(KEY + "nameToUUIDCache", mapSupplier);
             uuidToNameCache = (Map<UUID, Optional<String>>) getProperty.apply(KEY + "uuidToNameCache", mapSupplier);
             if (executor == null) {
-                executor = (ExecutorService) getProperty.apply(KEY + "executor", Executors::newSingleThreadExecutor);
-                executor.submit(() -> Thread.currentThread().setName(String.format("%s Shared-UUIDRegistry", JBukkitLib.NAME))); // set thread name.
+                executor = (ExecutorService) getProperty.apply(KEY + "executor", () -> {
+                    ExecutorService e = Executors.newSingleThreadExecutor();
+                    e.submit(() -> Thread.currentThread().setName(String.format("%s Shared-UUIDRegistry", JBukkitLib.NAME))); // set thread name.
+                    return e;
+                });
             }
         }
 

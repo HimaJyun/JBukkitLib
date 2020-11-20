@@ -23,7 +23,7 @@ import java.util.function.Consumer;
  * <li>{function(arg1,arg2)} -&gt; function</li>
  * <li>{variable} -&gt; variable</li>
  * <li>&amp;(char) -&gt; ColorCode</li>
- * <li>#ffffff -&gt hex color</li>
+ * <li>#ffffff -&gt; hex color</li>
  * <li>\ -&gt; escape</li>
  * </ul>
  */
@@ -140,60 +140,66 @@ public class ComponentParser {
 
         List<Node> nodes = new ArrayList<>();
         TextComponent component = new TextComponent();
-        StringBuilder sb = new StringBuilder();
-
         for (Parser.Node node : Parser.parse(str)) {
-            if (node.type == Parser.Type.HEX_COLOR) {
-                ChatColor c = ChatColor.of(sb.append('#').append(node.getValue()).toString());
-                sb.setLength(0);
-                // &k#aaa みたいにすると前の&kは消されてしまうが、Spigotのコードがそうなっているのでここではその挙動を真似る
-                component = new TextComponent();
-                component.setColor(c);
-            } else if (node.type == Parser.Type.MC_COLOR) {
-                ChatColor c = ChatColor.getByChar(node.getValue().charAt(0));
-                if (c == null) {
-                    throw new IllegalArgumentException("Invalid color format: " + node.getValue());
-                }
-                if (c == ChatColor.BOLD) {
-                    component.setBold(true);
-                } else if (c == ChatColor.ITALIC) {
-                    component.setItalic(true);
-                } else if (c == ChatColor.UNDERLINE) {
-                    component.setUnderlined(true);
-                } else if (c == ChatColor.STRIKETHROUGH) {
-                    component.setStrikethrough(true);
-                } else if (c == ChatColor.MAGIC) {
-                    component.setObfuscated(true);
-                } else if (c == ChatColor.RESET) {
+            switch (node.type) {
+                case HEX_COLOR:
+                    // &k#aaa みたいにすると前の&kは消されてしまうが、Spigotのコードがそうなっているのでここではその挙動を真似る
                     component = new TextComponent();
-                    component.setColor(DEFAULT_COLOR);
-                } else {
-                    // やはり&k&a みたいに色指定が装飾より後ろにあると打ち消されるが、Spigotに合わせる
-                    component = new TextComponent();
-                    component.setColor(c);
-                }
-            } else if (node.type == Parser.Type.STRING) {
-                TextComponent old = component;
-                component = new TextComponent(old);
-                old.setText(node.getValue());
-                nodes.add(new TextNode(old));
-            } else if (node.type == Parser.Type.URL) {
-                TextComponent old = component;
-                component = new TextComponent(old);
-                component.setText(node.getValue());
-                component.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, node.getValue()));
-                nodes.add(new TextNode(component));
-                component = old;
-            } else if (node.type == Parser.Type.VARIABLE) {
-                TextComponent old = component;
-                component = new TextComponent(old);
+                    component.setColor(ChatColor.of('#' + node.getValue()));
+                    break;
 
-                if (node.getValue().indexOf('(') != -1) {
-                    Map.Entry<String, String[]> func = Parser.parseFunction(node.getValue());
-                    nodes.add(new FunctionNode(old, func.getKey(), func.getValue()));
-                } else {
-                    nodes.add(new VariableNode(old, node.getValue()));
-                }
+                case MC_COLOR:
+                    ChatColor c = ChatColor.getByChar(node.getValue().charAt(0));
+                    if (c == null) { // たぶん到達不能
+                        throw new IllegalArgumentException("Invalid color format: " + node.getValue());
+                    }
+                    if (c == ChatColor.BOLD) {
+                        component.setBold(true);
+                    } else if (c == ChatColor.ITALIC) {
+                        component.setItalic(true);
+                    } else if (c == ChatColor.UNDERLINE) {
+                        component.setUnderlined(true);
+                    } else if (c == ChatColor.STRIKETHROUGH) {
+                        component.setStrikethrough(true);
+                    } else if (c == ChatColor.MAGIC) {
+                        component.setObfuscated(true);
+                    } else if (c == ChatColor.RESET) {
+                        component = new TextComponent();
+                        component.setColor(DEFAULT_COLOR);
+                    } else {
+                        // やはり&k&a みたいに色指定が装飾より後ろにあると打ち消されるが、Spigotに合わせる
+                        component = new TextComponent();
+                        component.setColor(c);
+                    }
+                    break;
+
+                case STRING:
+                    TextComponent text = component;
+                    component = new TextComponent(text);
+                    text.setText(node.getValue());
+                    nodes.add(new TextNode(text));
+                    break;
+
+                case URL:
+                    TextComponent url = component;
+                    component = new TextComponent(url);
+                    component.setText(node.getValue());
+                    component.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, node.getValue()));
+                    nodes.add(new TextNode(component));
+                    component = url;
+                    break;
+
+                case VARIABLE:
+                    TextComponent variable = component;
+                    component = new TextComponent(variable);
+
+                    if (node.getValue().indexOf('(') != -1) {
+                        Map.Entry<String, String[]> func = Parser.parseFunction(node.getValue());
+                        nodes.add(new FunctionNode(variable, func.getKey(), func.getValue()));
+                    } else {
+                        nodes.add(new VariableNode(variable, node.getValue()));
+                    }
+                    break;
             }
         }
 

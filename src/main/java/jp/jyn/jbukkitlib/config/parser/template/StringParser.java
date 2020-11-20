@@ -13,7 +13,7 @@ import java.util.List;
  * <ul>
  * <li>{variable} -&gt; variable</li>
  * <li>&amp;(char) -&gt; ColorCode</li>
- * <li>#ffffff -&gt hex color</li>
+ * <li>#ffffff -&gt; hex color</li>
  * <li>\ -&gt; escape</li>
  * </ul>
  */

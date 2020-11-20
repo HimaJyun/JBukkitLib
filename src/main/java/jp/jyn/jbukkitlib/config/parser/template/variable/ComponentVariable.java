@@ -81,7 +81,29 @@ public class ComponentVariable {
     }
 
     /**
-     * Put variable
+     * Alias of {@link ComponentVariable#variable(String, String)}
+     *
+     * @param key   variable name
+     * @param value variable value
+     * @return for method chain
+     */
+    public ComponentVariable put(String key, String value) {
+        return variable(key, value);
+    }
+
+    /**
+     * Alias of {@link ComponentVariable#variable(String, Supplier)}
+     *
+     * @param key   variable name
+     * @param value variable value
+     * @return for method chain
+     */
+    public ComponentVariable put(String key, Supplier<String> value) {
+        return variable(key, value);
+    }
+
+    /**
+     * Alias of {@link ComponentVariable#variable(String, Consumer)}
      *
      * @param key   variable name
      * @param value variable consumer
@@ -92,7 +114,7 @@ public class ComponentVariable {
     }
 
     /**
-     * Put function
+     * Alias of {@link ComponentVariable#function(String, BiConsumer)}
      *
      * @param key   function name
      * @param value function consumer
@@ -108,7 +130,9 @@ public class ComponentVariable {
      * @return for method chain
      */
     public ComponentVariable clearVariable() {
-        v().clear();
+        if (variable != null) {
+            variable.clear();
+        }
         return this;
     }
 
@@ -118,7 +142,9 @@ public class ComponentVariable {
      * @return for method chain
      */
     public ComponentVariable clearFunction() {
-        f().clear();
+        if (function != null) {
+            function.clear();
+        }
         return this;
     }
 
@@ -128,8 +154,12 @@ public class ComponentVariable {
      * @return for method chain
      */
     public ComponentVariable clear() {
-        v().clear();
-        f().clear();
+        if (variable != null) {
+            variable.clear();
+        }
+        if (function != null) {
+            function.clear();
+        }
         return this;
     }
 
@@ -137,19 +167,19 @@ public class ComponentVariable {
      * get variable
      *
      * @param key variable name
-     * @return value, Null if it does not exist.
+     * @return value, null if it does not exist.
      */
     public Consumer<TextComponent> getVariable(String key) {
-        return v().get(key);
+        return variable == null ? null : variable.get(key);
     }
 
     /**
      * get function
      *
      * @param key function name
-     * @return value, Null if it does not exist.
+     * @return value, null if it does not exist.
      */
     public BiConsumer<TextComponent, String[]> getFunction(String key) {
-        return f().get(key);
+        return function == null ? null : function.get(key);
     }
 }

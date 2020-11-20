@@ -27,6 +27,33 @@ class Parser {
 
     private Parser() { }
 
+    /**
+     * Valid format
+     * <ul>
+     *     <li>aaa{aaa}aaa   -> [String:aaa] [Variable:aaa] [String:aaa]   (Variable enclosed by curly brackets)</li>
+     *     <li>aaa{a{a}a}aaa -> [String:aaa] [Variable:a{a}a] [String:aaa] (Variables can be nest)</li>
+     *     <li>aaa{aa\}a}aaa -> [String:aaa] [Variable:aa}a] [String:aaa]  (curly brackets escaped by back-slash)</li>
+     *     <li>aaa{a\{aa}aaa -> [String:aaa] [Variable:a{aa] [String:aaa]  (curly brackets escaped by back-slash)</li>
+     *     <li>aaa{aaa\\}aaa -> [String:aaa] [Variable:aaa\] [String:aaa]  (back-slash escaped by back-slash)</li>
+     *     <li>aaa{ aaa }aaa -> [String:aaa] [Variable:aaa] [String:aaa]   (leading and trailing whitespace trimmed)</li>
+     *     <li>aaa{a a a}aaa -> [String:aaa] [Variable:a a a] [String:aaa] (trim only for leading and trailing)</li>
+     *     <li>aaa&aaaaaa -> [String:aaa] [MC_COLOR:a] [String:aaaaa] (Minecraft color code uses "&")</li>
+     *     <li>aaa&Aaaaaa -> [String:aaa] [MC_COLOR:a] [String:aaaaa] (Uppercase color code convert to lowercase)</li>
+     *     <li>aaa#aaaaaa -> [String:aaa] [HEX_COLOR:aaaaaa]              (Web color code uses "#")</li>
+     *     <li>aaa#aaazzz -> [String:aaa] [HEX_COLOR:aaaaaa] [String:zzz] (3-digit color code convert to 6-digit)</li>
+     *     <li>aaa#AAAAAA -> [String:aaa] [HEX_COLOR:aaaaaa]              (Uppercase color code convert to lowercase)</li>
+     *     <li>\&a\#aaa\{a}\\ -> [String:&a#aaa{a}\]     ("&", "#", "{" or "\" escaped by back-slash)</li>
+     *     <li>\a\b\c\d\e\f\g -> [String:\a\b\c\d\e\f\g] (escape only for "&", "#", "{" or "\")</li>
+     *     <li>https://example.com/ http://example.com/ -> [URL:https://example.com/] [String: ] [URL:http://example.com/]
+     *         (URLs start with "http://" or "https://" and end at the end of a line or blank)</li>
+     *     <li>https://example.com/?a&aaa#fff aaa       -> [URL:https://example.com/?a&aaa#fff] [String: aaa]
+     *         (URLs are parsed in preference to other special characters.)</li>
+     *     <li>aaa example.com aaa -> [String:aaa example.com aaa] (Domain-only URLs are treated as String)</li>
+     * </ul>
+     *
+     * @param str input string
+     * @return parsed value
+     */
     @PackagePrivate
     static List<Node> parse(String str) {
         Parser p = new Parser();
@@ -138,10 +165,12 @@ class Parser {
             case '&':
             case '#':
                 addString(String.valueOf(c));
-                this.cursor = pos + 2;
-                return;
+                break;
+            default:
+                sb.setLength(0);
+                addString(sb.append('\\').append(c).toString());
+                break;
         }
-        addString(sb.append('\\').append(c).toString());
         this.cursor = pos + 2;
     }
 
@@ -276,7 +305,7 @@ class Parser {
      *     <li>aaa()            -> aaa []              (allowed empty arguments)</li>
      *     <li>aaa(bbb)         -> aaa ["bbb"]         (arguments enclosed by parentheses)</li>
      *     <li>aaa(bbb,ccc)     -> aaa ["bbb","ccc"]   (arguments delimited by comma)</li>
-     *     <li>aaa(b\,b,ccc)    -> aaa ["b,b","ccc"]   (comma escaped by back-slash)</li>
+     *     <li>aaa(b\,bb,ccc)   -> aaa ["b,bb","ccc"]  (comma escaped by back-slash)</li>
      *     <li>aaa(b\"bb,ccc)   -> aaa ["b\"bb","ccc"] (quote escaped by back-slash)</li>
      *     <li>aaa(b\)bb,ccc)   -> aaa ["b)bb","ccc"]  (close parentheses escaped by back-slash)</li>
      *     <li>aaa(b\\bb,ccc)   -> aaa ["b\bb","ccc"]  (back-slash escaped by back-slash)</li>
