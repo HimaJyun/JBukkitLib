@@ -17,7 +17,7 @@ import java.util.function.DoubleUnaryOperator;
  * <p>Available functions:
  * abs, sin, cos, tan, sinh, cosh, tanh, asin, acos, atan,
  * round, floor, ceil, exp, log, log10, log1p, sqrt, cbrt,
- * signum, negative, min, max, pow, hypot, scale, random</p>
+ * signum, negate, min, max, pow, hypot, scale, random</p>
  */
 public class ExpressionParser {
     private final Node node;
@@ -168,7 +168,7 @@ public class ExpressionParser {
         u.put("sqrt", Math::sqrt);
         u.put("cbrt", Math::cbrt);
         u.put("signum", Math::signum);
-        u.put("reverse", d -> -d);
+        u.put("negate", d -> -d);
         UNARY_FUNCTIONS = Collections.unmodifiableMap(u);
 
         Map<String, DoubleBinaryOperator> b = new HashMap<>();
