@@ -91,6 +91,23 @@ public interface TemplateVariable {
     }
 
     /**
+     * Add variable.<br>
+     * Note: MUST call the key and value as arguments. That is, the number of arguments must be even.
+     *
+     * @param values Alternating keys and values. must be even.
+     * @return for method chain
+     */
+    default TemplateVariable put(String... values) {
+        if ((values.length & 1) == 1) { // 奇数
+            throw new IllegalArgumentException("arguments must be even.");
+        }
+        for (int i = 0; i < values.length; i += 2) {
+            this.put(values[i], values[i + 1]);
+        }
+        return this;
+    }
+
+    /**
      * Clear variable
      *
      * @return for method chain

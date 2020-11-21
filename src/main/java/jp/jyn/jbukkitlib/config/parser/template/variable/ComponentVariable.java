@@ -69,6 +69,26 @@ public class ComponentVariable {
     }
 
     /**
+     * Add variable.<br>
+     * Note: MUST call the key and value as arguments. That is, the number of arguments must be even.
+     *
+     * @param values Alternating keys and values. must be even.
+     * @return for method chain
+     */
+    public ComponentVariable variable(String... values) {
+        if ((values.length & 1) == 1) { // 奇数
+            throw new IllegalArgumentException("arguments must be even.");
+        }
+
+        Map<String, Consumer<TextComponent>> v = v();
+        for (int i = 0; i < values.length; i += 2) {
+            final String value = values[i + 1];
+            v.put(values[i], c -> c.setText(value));
+        }
+        return this;
+    }
+
+    /**
      * Put function
      *
      * @param key   function name
@@ -111,6 +131,16 @@ public class ComponentVariable {
      */
     public ComponentVariable put(String key, Consumer<TextComponent> value) {
         return variable(key, value);
+    }
+
+    /**
+     * Alias of {@link ComponentVariable#variable(String...)}
+     *
+     * @param values Alternating keys and values. must be even.
+     * @return for method chain
+     */
+    public ComponentVariable put(String... values) {
+        return variable(values);
     }
 
     /**

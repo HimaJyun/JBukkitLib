@@ -4,8 +4,7 @@ import jp.jyn.jbukkitlib.config.parser.template.variable.StringVariable;
 import org.bukkit.ChatColor;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StringParserTest {
     private TemplateParser parser;
@@ -27,19 +26,19 @@ public class StringParserTest {
     @Test
     public void urlTest1() {
         parser = StringParser.parse("aaa https://example.com/ aaa");
-        assertEquals(parser.toString(),"aaa https://example.com/ aaa");
+        assertEquals(parser.toString(), "aaa https://example.com/ aaa");
     }
 
     @Test
     public void urlTest2() {
         parser = StringParser.parse("https://example.com/ aaa");
-        assertEquals(parser.toString(),"https://example.com/ aaa");
+        assertEquals(parser.toString(), "https://example.com/ aaa");
     }
 
     @Test
     public void urlTest3() {
         parser = StringParser.parse("aaa https://example.com/");
-        assertEquals(parser.toString(),"aaa https://example.com/");
+        assertEquals(parser.toString(), "aaa https://example.com/");
     }
 
     @Test
@@ -51,31 +50,31 @@ public class StringParserTest {
     @Test
     public void colorCodeTest2() {
         parser = StringParser.parse("aaa&0&a&r");
-        assertEquals(parser.toString(), "aaa"+ChatColor.BLACK + ChatColor.GREEN + ChatColor.RESET);
+        assertEquals(parser.toString(), "aaa" + ChatColor.BLACK + ChatColor.GREEN + ChatColor.RESET);
     }
 
     @Test
     public void colorCodeTest3() {
         parser = StringParser.parse("A &A A");
-        assertEquals(parser.toString(), "A "+ChatColor.GREEN +" A");
+        assertEquals(parser.toString(), "A " + ChatColor.GREEN + " A");
     }
 
     @Test
     public void hexColorTest1() {
         parser = StringParser.parse("#123abc");
-        assertEquals(parser.toString(),"\u00A7x\u00A71\u00A72\u00A73\u00A7a\u00A7b\u00A7c");
+        assertEquals(parser.toString(), "\u00A7x\u00A71\u00A72\u00A73\u00A7a\u00A7b\u00A7c");
     }
 
     @Test
     public void hexColorTest2() {
         parser = StringParser.parse("#123");
-        assertEquals(parser.toString(),"\u00A7x\u00A71\u00A71\u00A72\u00A72\u00A73\u00A73");
+        assertEquals(parser.toString(), "\u00A7x\u00A71\u00A71\u00A72\u00A72\u00A73\u00A73");
     }
 
     @Test
     public void hexColorTest3() {
         parser = StringParser.parse("#gggggg");
-        assertEquals(parser.toString(),"#gggggg");
+        assertEquals(parser.toString(), "#gggggg");
     }
 
     @Test
@@ -156,6 +155,16 @@ public class StringParserTest {
         assertEquals(
             parser.toString(StringVariable.init().put("t e s t", 1)),
             "variable 1"
+        );
+    }
+
+    @Test
+    public void variableTest6() {
+        parser = StringParser.parse("{a}{b}");
+        assertThrows(IllegalArgumentException.class, () -> StringVariable.init().put("a", "b", "c"));
+        assertEquals(
+            parser.toString(StringVariable.init().put("a", "aaa", "b", "bbb")),
+            "aaabbb"
         );
     }
 

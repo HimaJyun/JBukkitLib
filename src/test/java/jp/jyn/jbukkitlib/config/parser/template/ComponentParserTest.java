@@ -9,8 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ComponentParserTest {
     ComponentParser parser;
@@ -96,6 +95,18 @@ class ComponentParserTest {
 
         TextComponent[] b = parser.getComponents();
         assertEquals(b[0].getText(), "{test}");
+    }
+
+    @Test
+    public void variableTest4() {
+        parser = ComponentParser.parse("{a}{b}");
+        assertThrows(IllegalArgumentException.class, () -> ComponentVariable.init().put("a", "b", "c"));
+        TextComponent[] c = parser.getComponents(ComponentVariable.init().put("a", "aaa", "b", "bbb"));
+        assertEquals(c.length, 2);
+
+        assertEquals(c[0].getText(), "aaa");
+
+        assertEquals(c[1].getText(), "bbb");
     }
 
     @Test

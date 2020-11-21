@@ -58,6 +58,11 @@ public class EmptyVariable implements TemplateVariable {
     }
 
     @Override
+    public TemplateVariable put(String... values) {
+        return this;
+    }
+
+    @Override
     public EmptyVariable clear() {
         return this;
     }

@@ -65,11 +65,11 @@ public class ComponentParser {
     /**
      * Sending action bar
      *
-     * @param player   target player
      * @param variable variable
+     * @param player   target player
      * @return for method chain
      */
-    public ComponentParser actionbar(Player player, ComponentVariable variable) {
+    public ComponentParser actionbar(ComponentVariable variable, Player player) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, getComponents(variable));
         return this;
     }
@@ -81,29 +81,129 @@ public class ComponentParser {
      * @return for method chain
      */
     public ComponentParser actionbar(Player player) {
-        return actionbar(player, EMPTY_VARIABLE);
+        return actionbar(EMPTY_VARIABLE, player);
+    }
+
+    /**
+     * Sending action bar
+     *
+     * @param variable variable
+     * @param players  target players
+     * @return for method chain
+     */
+    public ComponentParser actionbar(ComponentVariable variable, Iterable<Player> players) {
+        TextComponent[] components = getComponents(variable);
+        for (Player player : players) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
+        }
+        return this;
+    }
+
+    /**
+     * Sending action bar
+     *
+     * @param players target players
+     * @return for method chain
+     */
+    public ComponentParser actionbar(Iterable<Player> players) {
+        return actionbar(EMPTY_VARIABLE, players);
+    }
+
+    /**
+     * Sending action bar
+     *
+     * @param variable variable
+     * @param players  target players
+     * @return for method chain
+     */
+    public ComponentParser actionbar(ComponentVariable variable, Player... players) {
+        TextComponent[] components = getComponents(variable);
+        for (Player player : players) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
+        }
+        return this;
+    }
+
+    /**
+     * Sending action bar
+     *
+     * @param players target players
+     * @return for method chain
+     */
+    public ComponentParser actionbar(Player... players) {
+        return actionbar(EMPTY_VARIABLE, players);
     }
 
     /**
      * Sending message
      *
-     * @param sender   target sender
      * @param variable variable
+     * @param sender   target sender
      * @return for method chain
      */
-    public ComponentParser send(CommandSender sender, ComponentVariable variable) {
+    public ComponentParser send(ComponentVariable variable, CommandSender sender) {
         sender.spigot().sendMessage(getComponents(variable));
         return this;
     }
 
     /**
-     * Sending system message
+     * Sending message
      *
-     * @param player target player
+     * @param sender target sender
      * @return for method chain
      */
-    public ComponentParser send(Player player) {
-        return send(player, EMPTY_VARIABLE);
+    public ComponentParser send(CommandSender sender) {
+        return send(EMPTY_VARIABLE, sender);
+    }
+
+    /**
+     * Sending message
+     *
+     * @param variable variable
+     * @param senders  target senders
+     * @return for method chain
+     */
+    public ComponentParser send(ComponentVariable variable, Iterable<CommandSender> senders) {
+        TextComponent[] components = getComponents(variable);
+        for (CommandSender sender : senders) {
+            sender.spigot().sendMessage(components);
+        }
+        return this;
+    }
+
+    /**
+     * Sending message
+     *
+     * @param senders target senders
+     * @return for method chain
+     */
+    public ComponentParser send(Iterable<CommandSender> senders) {
+        return send(EMPTY_VARIABLE, senders);
+    }
+
+    /**
+     * Sending message
+     *
+     * @param variable variable
+     * @param senders  target senders
+     * @return for method chain
+     */
+    public ComponentParser send(ComponentVariable variable, CommandSender... senders) {
+        TextComponent[] components = getComponents(variable);
+        for (CommandSender sender : senders) {
+            sender.spigot().sendMessage(components);
+        }
+        return this;
+    }
+
+    /**
+     * Sending message
+     *
+     * @param senders target senders
+     * @return for method chain
+     */
+    public ComponentParser send(CommandSender... senders) {
+        return send(EMPTY_VARIABLE, senders);
     }
 
     /**
