@@ -4,11 +4,20 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.logging.Level;
 
 /**
@@ -89,5 +98,74 @@ public class YamlLoader {
 
         config.setDefaults(
             YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8)));
+    }
+
+
+    /**
+     * Copy directory from plugin jar.
+     *
+     * @param plugin  plugin
+     * @param src     source directory name
+     * @param dir     target directory name
+     * @param replace replace if exists
+     */
+    public static void copyDir(Plugin plugin, String src, Path dir, boolean replace) {
+        String name = src + "/";
+        try {
+            String path = plugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+            JarFile jar = new JarFile(URLDecoder.decode(path.replace("+", "%2b"), "UTF-8"));
+            Files.createDirectories(dir);
+            for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements(); ) {
+                JarEntry e = entries.nextElement();
+                if (e.isDirectory() || !e.getName().startsWith(name)) {
+                    continue;
+                }
+
+                String file = e.getName().substring(name.length());
+                Path dst = dir.resolve(file);
+                if (!replace && Files.exists(dst)) {
+                    continue;
+                }
+
+                try (BufferedInputStream in = new BufferedInputStream(jar.getInputStream(e))) {
+                    Files.copy(in, dst, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Copy directory from plugin jar.
+     * Does not replace if exists.
+     *
+     * @param plugin plugin
+     * @param src    source directory name
+     * @param dir    target directory name
+     */
+    public static void copyDir(Plugin plugin, String src, Path dir) {
+        copyDir(plugin, src, dir, false);
+    }
+
+    /**
+     * Copy directory from plugin jar to plugin config directory.
+     *
+     * @param plugin  plugin
+     * @param src     source directory name
+     * @param replace replace if exists
+     */
+    public static void copyDir(Plugin plugin, String src, boolean replace) {
+        copyDir(plugin, src, plugin.getDataFolder().toPath().resolve(src), replace);
+    }
+
+    /**
+     * Copy directory from plugin jar to plugin config directory.
+     *
+     * @param plugin plugin
+     * @param src    source directory name
+     */
+    public static void copyDir(Plugin plugin, String src) {
+        copyDir(plugin, src, false);
     }
 }
