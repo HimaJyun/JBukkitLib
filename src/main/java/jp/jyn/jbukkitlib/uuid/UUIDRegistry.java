@@ -79,7 +79,7 @@ public class UUIDRegistry {
         //   the synchronized method is (probably) meaningless.
         // It is solved by making System.getProperties() synchronized.
         synchronized (System.getProperties()) {
-            Supplier<Object> mapSupplier = () -> CacheFactory.Sized.INFINITY.create(true);
+            Supplier<Object> mapSupplier = () -> CacheFactory.INFINITY.create(true);
             nameToUUIDCache = (Map<String, Optional<UUID>>) getProperty.apply(KEY + "nameToUUIDCache", mapSupplier);
             uuidToNameCache = (Map<UUID, Optional<String>>) getProperty.apply(KEY + "uuidToNameCache", mapSupplier);
             if (executor == null) {
