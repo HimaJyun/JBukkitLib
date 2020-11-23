@@ -1,67 +1,66 @@
 package jp.jyn.jbukkitlib.config.locale;
 
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
+/**
+ * Use different objects depending on the player's locale.
+ *
+ * @param <T> Type
+ */
 public interface BukkitLocale<T> extends Iterable<T> {
     /**
-     * Gets the object for the specified locale.
+     * Get object for specified locale.
      *
      * @param locale target locale
-     * @return An object in the specified locale. Invoke the initializer if it has not been initialized.
+     * @return specified locale object
      */
     T get(String locale);
 
     /**
-     * Gets the object in the specified player's locale.
+     * Get object for specified player locale.
+     * Use {@link Player#getLocale()}, must use an exact matching locale name.
      *
      * @param player target player
-     * @return An object in the specified locale. Invoke the initializer if it has not been initialized.
+     * @return player locale object, use if not exists default locale.
      */
-    T get(Player player);
+    default T get(Player player) {
+        return get(player.getLocale());
+    }
 
     /**
-     * Gets the object in the default locale.
+     * Get object for specified sender locale.
+     * Use {@link #get(Player)} if the sender is a player, else use {@link #get()}.
      *
-     * @return An object in the specified locale. Invoke the initializer if it has not been initialized.
+     * @param sender target sender
+     * @return sender locale object, use if not exists default locale.
+     */
+    default T get(CommandSender sender) {
+        return sender instanceof Player ? get((Player) sender) : get();
+    }
+
+    /**
+     * Get object for default locale.
+     *
+     * @return default locale
      */
     T get();
 
     /**
-     * Invoke the initializer if the object in the specified locale has not been initialized.
-     *
-     * @param locale target locale
-     */
-    void load(String locale);
-
-    /**
-     * Invoke the initializer if the object in the specified locale has not been initialized.
-     *
-     * @param locale target locales
-     */
-    void load(String... locale);
-
-    /**
-     * Invoke the initializer if the object in the specified locale has not been initialized.
-     *
-     * @param locale target locales
-     */
-    void load(Iterable<String> locale);
-
-    /**
-     * Iterates over all initialized locales.
+     * Iterate all locales.
      *
      * @param action action
      */
     void forEach(BiConsumer<String, ? super T> action);
 
     /**
-     * Return {@link Set} of the all initialized locales.
+     * Return {@link Set} of the all locales.
      *
-     * @return initialized locale.
+     * @return locale set
      */
     Set<Map.Entry<String, T>> entrySet();
 }

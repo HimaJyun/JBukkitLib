@@ -1,5 +1,6 @@
 package jp.jyn.jbukkitlib.config.locale;
 
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.AbstractMap;
@@ -11,31 +12,27 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
+/**
+ * BukkitLocale implementation using a single locale.
+ * This can be used for settings that use a single locale regardless of the player's locale.
+ *
+ * @param <T> Type
+ */
 public class SingleLocale<T> implements BukkitLocale<T> {
+    private final String name;
     private final T locale;
-    private final String defaultLocale;
 
     /**
-     * Use single locale.
+     * BukkitLocale implementation using a single locale.
+     * This can be used for settings that use a single locale regardless of the player's locale.
      *
-     * @param defaultLocale default locale
-     * @param locale        initialized object
+     * @param name   locale name
+     * @param locale locale object
      */
-    public SingleLocale(String defaultLocale, T locale) {
-        this.defaultLocale = defaultLocale;
-        this.locale = locale;
-    }
-
-    /**
-     * Use single locale.
-     *
-     * @param defaultLocale default locale
-     * @param initializer   object initializer (argument: locale)
-     */
-    public SingleLocale(String defaultLocale, Function<String, T> initializer) {
-        this(defaultLocale, initializer.apply(defaultLocale));
+    private SingleLocale(String name, T locale) {
+        this.name = Objects.requireNonNull(name);
+        this.locale = Objects.requireNonNull(locale, "default locale does not allowed null");
     }
 
     @Override
@@ -49,28 +46,24 @@ public class SingleLocale<T> implements BukkitLocale<T> {
     }
 
     @Override
+    public T get(CommandSender sender) {
+        return this.locale;
+    }
+
+    @Override
     public T get() {
         return locale;
     }
 
     @Override
-    public void load(String locale) { }
-
-    @Override
-    public void load(String... locale) { }
-
-    @Override
-    public void load(Iterable<String> locale) { }
-
-    @Override
     public void forEach(BiConsumer<String, ? super T> action) {
         Objects.requireNonNull(action);
-        action.accept(defaultLocale, locale);
+        action.accept(name, locale);
     }
 
     @Override
     public Set<Map.Entry<String, T>> entrySet() {
-        return Collections.singleton(new AbstractMap.SimpleImmutableEntry<>(defaultLocale, locale));
+        return Collections.singleton(new AbstractMap.SimpleImmutableEntry<>(name, locale));
     }
 
     @Override
@@ -87,5 +80,13 @@ public class SingleLocale<T> implements BukkitLocale<T> {
     public void forEach(Consumer<? super T> action) {
         Objects.requireNonNull(action);
         action.accept(locale);
+    }
+
+    @Override
+    public String toString() {
+        return "SingleLocale{" +
+            "name='" + name + '\'' +
+            ", locale=" + locale +
+            '}';
     }
 }
