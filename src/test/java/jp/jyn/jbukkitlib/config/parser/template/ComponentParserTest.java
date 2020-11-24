@@ -24,8 +24,8 @@ class ComponentParserTest {
 
     @Test
     public void stringTest2() {
-        parser = ComponentParser.parse("raw &0string&r\\");
-        BaseComponent[] b = legacy("raw &0string&r\\");
+        parser = ComponentParser.parse("raw &0string&r&");
+        BaseComponent[] b = legacy("raw &0string&r&");
 
         TextComponent[] c = parser.getComponents();
         assertEquals(c.length, b.length);
@@ -37,7 +37,7 @@ class ComponentParserTest {
         assertEquals(c[1].getText(), "string");
         assertEquals(c[1].getColorRaw(), ChatColor.BLACK);
 
-        assertEquals(c[2].getText(), "\\");
+        assertEquals(c[2].getText(), "&");
     }
 
     @Test
@@ -112,10 +112,10 @@ class ComponentParserTest {
     @Test
     public void escapeTest() {
         // && &{ &&0 &z & &
-        parser = ComponentParser.parse("\\\\ \\{ \\&0 \\z \\ \\");
+        parser = ComponentParser.parse("&& &{ &&0 &z & &");
         TextComponent[] c = parser.getComponents();
         assertEquals(c.length, 1);
-        assertEquals(c[0].getText(), "\\ { &0 \\z \\ \\");
+        assertEquals(c[0].getText(), "& { &0 &z & &");
     }
 
     @Test

@@ -75,7 +75,7 @@ public class ParserTest {
 
     @Test
     public void variableTest5() {
-        List<Node> n = parse("aaa{aa\\}a}aaa");
+        List<Node> n = parse("aaa{aa&}a}aaa");
 
         assertEquals(n.size(), 3);
 
@@ -91,7 +91,7 @@ public class ParserTest {
 
     @Test
     public void variableTest6() {
-        List<Node> n = parse("aaa{a\\{aa}aaa");
+        List<Node> n = parse("aaa{a&{aa}aaa");
 
         assertEquals(n.size(), 3);
 
@@ -107,7 +107,7 @@ public class ParserTest {
 
     @Test
     public void variableTest7() {
-        List<Node> n = parse("aaa{aaa\\\\}aaa");
+        List<Node> n = parse("aaa{aaa&&}aaa");
 
         assertEquals(n.size(), 3);
 
@@ -115,7 +115,7 @@ public class ParserTest {
         assertEquals(n.get(0).getValue(), "aaa");
 
         assertEquals(n.get(1).type, Type.VARIABLE);
-        assertEquals(n.get(1).getValue(), "aaa\\");
+        assertEquals(n.get(1).getValue(), "aaa&");
 
         assertEquals(n.get(2).type, Type.STRING);
         assertEquals(n.get(2).getValue(), "aaa");
@@ -287,22 +287,22 @@ public class ParserTest {
 
     @Test
     public void escapeTest1() {
-        List<Node> n = parse("\\&a\\#aaa\\{a}\\\\");
+        List<Node> n = parse("&{a&}&#aaa&&a");
 
         assertEquals(n.size(), 1);
 
         assertEquals(n.get(0).type, Type.STRING);
-        assertEquals(n.get(0).getValue(), "&a#aaa{a}\\");
+        assertEquals(n.get(0).getValue(), "{a}#aaa&a");
     }
 
     @Test
     public void escapeTest2() {
-        List<Node> n = parse("\\a\\b\\c\\d\\e\\f\\g");
+        List<Node> n = parse("&/&$&%&|&!&");
 
         assertEquals(n.size(), 1);
 
         assertEquals(n.get(0).type, Type.STRING);
-        assertEquals(n.get(0).getValue(), "\\a\\b\\c\\d\\e\\f\\g");
+        assertEquals(n.get(0).getValue(), "&/&$&%&|&!&");
     }
 
     @Test
@@ -388,7 +388,7 @@ public class ParserTest {
 
         @Test
         public void escapeTest1() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b\\,bb,ccc)");
+            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&,bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
             assertArrayEquals(e.getValue(),ary("b,bb","ccc"));
@@ -396,7 +396,7 @@ public class ParserTest {
 
         @Test
         public void escapeTest2() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b\\\"bb,ccc)");
+            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&\"bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
             assertArrayEquals(e.getValue(),ary("b\"bb","ccc"));
@@ -404,26 +404,34 @@ public class ParserTest {
 
         @Test
         public void escapeTest3() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b\\)bb,ccc)");
+            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&(bb,ccc)");
+
+            assertEquals(e.getKey(),"aaa");
+            assertArrayEquals(e.getValue(),ary("b(bb","ccc"));
+        }
+
+        @Test
+        public void escapeTest4() {
+            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&)bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
             assertArrayEquals(e.getValue(),ary("b)bb","ccc"));
         }
 
         @Test
-        public void escapeTest4() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b\\\\bb,ccc)");
+        public void escapeTest5() {
+            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&&bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b\\bb","ccc"));
+            assertArrayEquals(e.getValue(),ary("b&bb","ccc"));
         }
 
         @Test
-        public void escapeTest5() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b\\bb,ccc)");
+        public void escapeTest6() {
+            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b\\bb","ccc"));
+            assertArrayEquals(e.getValue(),ary("b&bb","ccc"));
         }
 
         @Test
@@ -452,15 +460,15 @@ public class ParserTest {
 
         @Test
         public void quoteTest3() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(\"bb\\\\\",ccc)");
+            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(\"bb&&\",ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("bb\\","ccc"));
+            assertArrayEquals(e.getValue(),ary("bb&","ccc"));
         }
 
         @Test
         public void quoteTest4() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(\"b\\\"b\",ccc)");
+            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(\"b&\"b\",ccc)");
 
             assertEquals(e.getKey(),"aaa");
             assertArrayEquals(e.getValue(),ary("b\"b","ccc"));

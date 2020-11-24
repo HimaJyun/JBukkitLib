@@ -18,9 +18,9 @@ public class StringParserTest {
 
     @Test
     public void rawStringTest2() {
-        parser = StringParser.parse("raw &0string&r\\");
+        parser = StringParser.parse("raw &0string&r&");
         assertTrue(parser instanceof RawStringParser);
-        assertEquals(parser.toString(), "raw " + ChatColor.BLACK + "string" + ChatColor.RESET + "\\");
+        assertEquals(parser.toString(), "raw " + ChatColor.BLACK + "string" + ChatColor.RESET + "&");
     }
 
     @Test
@@ -171,8 +171,8 @@ public class StringParserTest {
     @Test
     public void escapeTest() {
         // \\ \{ \&0 \z \ \
-        parser = StringParser.parse("\\\\ \\{ \\&0 \\z \\ \\");
-        assertEquals(parser.toString(), "\\ { &0 \\z \\ \\");
+        parser = StringParser.parse("&& &{ &&0 &z & &");
+        assertEquals(parser.toString(), "& { &0 &z & &");
     }
 
     @Test
@@ -196,7 +196,7 @@ public class StringParserTest {
     @Test
     public void test1() {
         parser = StringParser.parse("test &#aaa");
-        assertEquals(parser.toString(), "test &\u00A7x\u00A7a\u00A7a\u00A7a\u00A7a\u00A7a\u00A7a");
+        assertEquals(parser.toString(), "test #aaa");
     }
 
     @Test
@@ -207,7 +207,7 @@ public class StringParserTest {
 
     @Test
     public void test3() {
-        parser = StringParser.parse("test \\\\#aaa");
-        assertEquals(parser.toString(), "test \\\u00A7x\u00A7a\u00A7a\u00A7a\u00A7a\u00A7a\u00A7a");
+        parser = StringParser.parse("test &&#aaa");
+        assertEquals(parser.toString(), "test &\u00A7x\u00A7a\u00A7a\u00A7a\u00A7a\u00A7a\u00A7a");
     }
 }

@@ -30,11 +30,11 @@ class Parser {
     /**
      * Valid format
      * <ul>
-     *     <li>aaa{aaa}aaa   -> [String:aaa] [Variable:aaa] [String:aaa]   (Variable enclosed by curly brackets)</li>
+     *     <li>aaa{aaa}aaa   -> [String:aaa] [Variable:aaa] [String:aaa]   (Variable enclosed by "{ }")</li>
      *     <li>aaa{a{a}a}aaa -> [String:aaa] [Variable:a{a}a] [String:aaa] (Variables can be nest)</li>
-     *     <li>aaa{aa\}a}aaa -> [String:aaa] [Variable:aa}a] [String:aaa]  (curly brackets escaped by back-slash)</li>
-     *     <li>aaa{a\{aa}aaa -> [String:aaa] [Variable:a{aa] [String:aaa]  (curly brackets escaped by back-slash)</li>
-     *     <li>aaa{aaa\\}aaa -> [String:aaa] [Variable:aaa\] [String:aaa]  (back-slash escaped by back-slash)</li>
+     *     <li>aaa{aa&}a}aaa -> [String:aaa] [Variable:aa}a] [String:aaa]  ("}" escaped by "&")</li>
+     *     <li>aaa{a&{aa}aaa -> [String:aaa] [Variable:a{aa] [String:aaa]  ("{" escaped by "&")</li>
+     *     <li>aaa{aaa&&}aaa -> [String:aaa] [Variable:aaa&] [String:aaa]  ("&" escaped by "&")</li>
      *     <li>aaa{ aaa }aaa -> [String:aaa] [Variable:aaa] [String:aaa]   (leading and trailing whitespace trimmed)</li>
      *     <li>aaa{a a a}aaa -> [String:aaa] [Variable:a a a] [String:aaa] (trim only for leading and trailing)</li>
      *     <li>aaa&aaaaaa -> [String:aaa] [MC_COLOR:a] [String:aaaaa] (Minecraft color code uses "&")</li>
@@ -42,8 +42,8 @@ class Parser {
      *     <li>aaa#aaaaaa -> [String:aaa] [HEX_COLOR:aaaaaa]              (Web color code uses "#")</li>
      *     <li>aaa#aaazzz -> [String:aaa] [HEX_COLOR:aaaaaa] [String:zzz] (3-digit color code convert to 6-digit)</li>
      *     <li>aaa#AAAAAA -> [String:aaa] [HEX_COLOR:aaaaaa]              (Uppercase color code convert to lowercase)</li>
-     *     <li>\&a\#aaa\{a}\\ -> [String:&a#aaa{a}\]     ("&", "#", "{" or "\" escaped by back-slash)</li>
-     *     <li>\a\b\c\d\e\f\g -> [String:\a\b\c\d\e\f\g] (escape only for "&", "#", "{" or "\")</li>
+     *     <li>&{a&}&#aaa&&a -> [String:{a}#aaa&a]     ("{", "}", "#" or "&" escaped by "&")</li>
+     *     <li>&/&$&%&|&!& -> [String:&/&$&%&|&!&] (escape only for "{", "}", "#" or "&")</li>
      *     <li>https://example.com/ http://example.com/ -> [URL:https://example.com/] [String: ] [URL:http://example.com/]
      *         (URLs start with "http://" or "https://" and end at the end of a line or blank)</li>
      *     <li>https://example.com/?a&aaa#fff aaa       -> [URL:https://example.com/?a&aaa#fff] [String: aaa]
@@ -70,9 +70,6 @@ class Parser {
             while ((pos = p.find()) != -1) {
                 p.text(p.cursor, pos);
                 switch (p.str.charAt(pos)) {
-                    case '\\':
-                        p.escape(pos);
-                        break;
                     case '{':
                         p.variable(pos);
                         break;
@@ -118,7 +115,6 @@ class Parser {
     private int find() {
         for (int i = cursor; i < str.length(); i++) {
             switch (str.charAt(i)) {
-                case '\\':
                 case '{':
                 case '&':
                 case '#':
@@ -152,28 +148,6 @@ class Parser {
         }
     }
 
-    private void escape(int pos) {
-        if (range(pos, 1)) {
-            addString("\\");
-            this.cursor = pos + 1;
-            return;
-        }
-        char c = str.charAt(pos + 1);
-        switch (c) {
-            case '\\':
-            case '{':
-            case '&':
-            case '#':
-                addString(String.valueOf(c));
-                break;
-            default:
-                sb.setLength(0);
-                addString(sb.append('\\').append(c).toString());
-                break;
-        }
-        this.cursor = pos + 2;
-    }
-
     private void variable(int pos) {
         if (range(pos, 1)) {
             addString("{");
@@ -188,10 +162,9 @@ class Parser {
             // 入れ子レベル変動
             int j = c == '{' ? +1 : c == '}' ? -1 : 0;
             if (j != 0) {
-                if (str.charAt(i - 1) == '\\') { // \{
-                    // sb.deleteCharAt(sb.length() - 1); // System.arraycopyを発生させる
-                    sb.setLength(sb.length() - 1); // 前の \ を消す -> "\"なら"{"や"}"に、"\\"なら"\{"や"\}"になるようにする。
-                    if (str.charAt(i - 2) == '\\') { // \\{
+                if (str.charAt(i - 1) == '&') { // &{
+                    sb.setLength(sb.length() - 1); // 前の & を消す -> "&"なら"{"や"}"に、"&&"なら"&{"や"&}"になるようにする。
+                    if (str.charAt(i - 2) == '&') { // &&{
                         nest += j;
                     }
                 } else {
@@ -225,6 +198,16 @@ class Parser {
         }
 
         char c = str.charAt(pos + 1);
+        switch (c) { // escape
+            case '{':
+            case '}':
+            case '&':
+            case '#':
+                addString(String.valueOf(c));
+                this.cursor = pos + 2;
+                return;
+        }
+
         if (c >= 'A' && c <= 'Z') {
             c += 32; // 小文字化
         }
@@ -303,16 +286,17 @@ class Parser {
      * Valid format
      * <ul>
      *     <li>aaa()            -> aaa []              (allowed empty arguments)</li>
-     *     <li>aaa(bbb)         -> aaa ["bbb"]         (arguments enclosed by parentheses)</li>
-     *     <li>aaa(bbb,ccc)     -> aaa ["bbb","ccc"]   (arguments delimited by comma)</li>
-     *     <li>aaa(b\,bb,ccc)   -> aaa ["b,bb","ccc"]  (comma escaped by back-slash)</li>
-     *     <li>aaa(b\"bb,ccc)   -> aaa ["b\"bb","ccc"] (quote escaped by back-slash)</li>
-     *     <li>aaa(b\)bb,ccc)   -> aaa ["b)bb","ccc"]  (close parentheses escaped by back-slash)</li>
-     *     <li>aaa(b\\bb,ccc)   -> aaa ["b\bb","ccc"]  (back-slash escaped by back-slash)</li>
-     *     <li>aaa(b\bb,ccc)    -> aaa ["b\bb","ccc"]  (escape only for back-slash, quote, comma or close parentheses)</li>
+     *     <li>aaa(bbb)         -> aaa ["bbb"]         (arguments enclosed by "( )")</li>
+     *     <li>aaa(bbb,ccc)     -> aaa ["bbb","ccc"]   (arguments delimited by ",")</li>
+     *     <li>aaa(b&,bb,ccc)   -> aaa ["b,bb","ccc"]  ("," escaped by "&")</li>
+     *     <li>aaa(b&"bb,ccc)   -> aaa ["b\"bb","ccc"] ("\"" escaped by "&")</li>
+     *     <li>aaa(b&(bb,ccc)   -> aaa ["b)bb","ccc"]  ("(" escaped by "&")</li>
+     *     <li>aaa(b&)bb,ccc)   -> aaa ["b)bb","ccc"]  (")" escaped by "&")</li>
+     *     <li>aaa(b&&bb,ccc)   -> aaa ["b&bb","ccc"]  ("&" escaped by "&")</li>
+     *     <li>aaa(b&bb,ccc)    -> aaa ["b&bb","ccc"]  (escape only for "\"", ",","(", ")" or "&")</li>
      *     <li>aaa(b b b,ccc)   -> aaa ["bbb","ccc"]   (white-space ignored)</li>
-     *     <li>aaa("b b b",ccc) -> aaa ["b b b","ccc"] (white-space allowed only in quote)</li>
-     *     <li>aaa("b,)b",ccc)  -> aaa ["b,)b","ccc"]  (comma and close parentheses can be omit in quote)</li>
+     *     <li>aaa("b b b",ccc) -> aaa ["b b b","ccc"] (white-space allowed only in "\"")</li>
+     *     <li>aaa("b,)b",ccc)  -> aaa ["b,)b","ccc"]  (escape for "," and ")" can be omit in "\"")</li>
      * </ul>
      * function name is allowed  in any characters except parentheses. (even if it empty)<br>
      * but, common characters ([a-zA-Z0-9_]) are recommended.
@@ -349,13 +333,14 @@ class Parser {
             if (escape) {
                 switch (c) {
                     case '"':
-                    case '\\':
+                    case '&':
                     case ',':
-                    case ')': // \" \\ \, ) -> " \ , )
+                    case '(':
+                    case ')': // &" & &, &(, &) -> " & , ( )
                         buf.append(c);
                         break;
-                    default: // \a -> \a
-                        buf.append('\\').append(c);
+                    default: // &a -> &a
+                        buf.append('&').append(c);
                         break;
                 }
                 escape = false;
@@ -364,7 +349,7 @@ class Parser {
 
             if (quote) {
                 switch (c) {
-                    case '\\':
+                    case '&':
                         escape = true;
                         break;
                     case '"':
@@ -381,7 +366,7 @@ class Parser {
                 case '"':
                     quote = true;
                     continue;
-                case '\\':
+                case '&':
                     escape = true;
                     continue;
                 case ' ':
