@@ -18,6 +18,10 @@ public interface TemplateParser {
         return toString(StringVariable.init().put(key, value));
     }
 
+    default String toString(String... values) {
+        return toString(StringVariable.init().put(values));
+    }
+
     default String toString(String key, Supplier<String> value) {
         return toString(SupplierVariable.init().put(key, value));
     }
