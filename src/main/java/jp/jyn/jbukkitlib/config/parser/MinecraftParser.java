@@ -1,17 +1,15 @@
-package jp.jyn.jbukkitlib.config.parser.template;
+package jp.jyn.jbukkitlib.config.parser;
 
-import jp.jyn.jbukkitlib.util.PackagePrivate;
 import org.bukkit.ChatColor;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@PackagePrivate
-class Parser {
-    @PackagePrivate
-    enum Type {
+public class MinecraftParser {
+    public enum Type {
         STRING,
         VARIABLE,
         HEX_COLOR,
@@ -25,7 +23,7 @@ class Parser {
     private int cursor = 0;
     private String str;
 
-    private Parser() { }
+    private MinecraftParser() { }
 
     /**
      * Valid format
@@ -54,9 +52,8 @@ class Parser {
      * @param str input string
      * @return parsed value
      */
-    @PackagePrivate
-    static List<Node> parse(String str) {
-        Parser p = new Parser();
+    public static List<Node> parse(String str) {
+        MinecraftParser p = new MinecraftParser();
 
         for (Map.Entry<Boolean, String> entry : split(str)) {
             if (entry.getKey()) {
@@ -265,19 +262,16 @@ class Parser {
         return pos + length >= str.length();
     }
 
-    @PackagePrivate
-    static class Node {
-        @PackagePrivate
-        final Type type;
+    public static class Node {
+        public final Type type;
         private String value;
 
-        Node(Type type, String value) {
+        private Node(Type type, String value) {
             this.type = type;
             this.value = value;
         }
 
-        @PackagePrivate
-        String getValue() {
+        public String getValue() {
             return value;
         }
     }
@@ -304,8 +298,7 @@ class Parser {
      * @param str input string
      * @return parsed value (key=name, value=args)
      */
-    @PackagePrivate
-    static Map.Entry<String, String[]> parseFunction(String str) {
+    public static Map.Entry<String, List<String>> parseFunction(String str) {
         String name;
         List<String> args = new ArrayList<>(); // 初期容量(=10)を超えさえしなければ、LinkedListより速い -> 引数の個数が10を超える可能性は低い
 
@@ -318,7 +311,7 @@ class Parser {
         String rawArgs = str.substring(argsIndex + 1);
         if (rawArgs.length() == 1 && rawArgs.charAt(0) == ')') {
             // empty args
-            return new AbstractMap.SimpleImmutableEntry<>(name, new String[0]);
+            return new AbstractMap.SimpleImmutableEntry<>(name, Collections.emptyList());
         }
 
         StringBuilder buf = new StringBuilder();
@@ -384,6 +377,6 @@ class Parser {
         }
         args.add(buf.toString());
 
-        return new AbstractMap.SimpleImmutableEntry<>(name, args.toArray(new String[0]));
+        return new AbstractMap.SimpleImmutableEntry<>(name, args);
     }
 }
