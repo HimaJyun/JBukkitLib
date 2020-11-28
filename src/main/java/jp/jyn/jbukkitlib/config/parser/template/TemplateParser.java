@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  * <li>{variable} -&gt; variable</li>
  * <li>&amp;(char) -&gt; ColorCode</li>
  * <li>#ffffff -&gt; hex color</li>
- * <li>& -&gt; escape</li>
+ * <li>&amp; -&gt; escape</li>
  * </ul>
  */
 @FunctionalInterface
@@ -147,7 +147,7 @@ public interface TemplateParser {
      * <li>{variable} -&gt; variable</li>
      * <li>&amp;(char) -&gt; ColorCode</li>
      * <li>#ffffff -&gt; hex color</li>
-     * <li>& -&gt; escape</li>
+     * <li>&amp; -&gt; escape</li>
      * </ul>
      *
      * @param str input value

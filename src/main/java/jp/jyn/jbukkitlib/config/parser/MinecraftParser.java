@@ -30,21 +30,21 @@ public class MinecraftParser {
      * <ul>
      *     <li>aaa{aaa}aaa   -> [String:aaa] [Variable:aaa] [String:aaa]   (Variable enclosed by "{ }")</li>
      *     <li>aaa{a{a}a}aaa -> [String:aaa] [Variable:a{a}a] [String:aaa] (Variables can be nest)</li>
-     *     <li>aaa{aa&}a}aaa -> [String:aaa] [Variable:aa}a] [String:aaa]  ("}" escaped by "&")</li>
-     *     <li>aaa{a&{aa}aaa -> [String:aaa] [Variable:a{aa] [String:aaa]  ("{" escaped by "&")</li>
-     *     <li>aaa{aaa&&}aaa -> [String:aaa] [Variable:aaa&] [String:aaa]  ("&" escaped by "&")</li>
+     *     <li>aaa{aaa&amp;}a}aaa -> [String:aaa] [Variable:aa}a] [String:aaa]  ("}" escaped by "a&amp;")</li>
+     *     <li>aaa{aa&amp;{aa}aaa -> [String:aaa] [Variable:a{aa] [String:aaa]  ("{" escaped by "a&amp;")</li>
+     *     <li>aaa{aaaa&amp;a&amp;}aaa -> [String:aaa] [Variable:aaaa&amp;] [String:aaa]  ("a&amp;" escaped by "a&amp;")</li>
      *     <li>aaa{ aaa }aaa -> [String:aaa] [Variable:aaa] [String:aaa]   (leading and trailing whitespace trimmed)</li>
      *     <li>aaa{a a a}aaa -> [String:aaa] [Variable:a a a] [String:aaa] (trim only for leading and trailing)</li>
-     *     <li>aaa&aaaaaa -> [String:aaa] [MC_COLOR:a] [String:aaaaa] (Minecraft color code uses "&")</li>
-     *     <li>aaa&Aaaaaa -> [String:aaa] [MC_COLOR:a] [String:aaaaa] (Uppercase color code convert to lowercase)</li>
+     *     <li>aaaa&amp;aaaaaa -> [String:aaa] [MC_COLOR:a] [String:aaaaa] (Minecraft color code uses "a&amp;")</li>
+     *     <li>aaaa&amp;Aaaaaa -> [String:aaa] [MC_COLOR:a] [String:aaaaa] (Uppercase color code convert to lowercase)</li>
      *     <li>aaa#aaaaaa -> [String:aaa] [HEX_COLOR:aaaaaa]              (Web color code uses "#")</li>
      *     <li>aaa#aaazzz -> [String:aaa] [HEX_COLOR:aaaaaa] [String:zzz] (3-digit color code convert to 6-digit)</li>
      *     <li>aaa#AAAAAA -> [String:aaa] [HEX_COLOR:aaaaaa]              (Uppercase color code convert to lowercase)</li>
-     *     <li>&{a&}&#aaa&&a -> [String:{a}#aaa&a]     ("{", "}", "#" or "&" escaped by "&")</li>
-     *     <li>&/&$&%&|&!& -> [String:&/&$&%&|&!&] (escape only for "{", "}", "#" or "&")</li>
+     *     <li>a&amp;{aa&amp;}a&amp;#aaaa&amp;a&amp;a -> [String:{a}#aaaa&amp;a]     ("{", "}", "#" or "a&amp;" escaped by "a&amp;")</li>
+     *     <li>a&amp;/a&amp;$a&amp;%a&amp;|a&amp;!a&amp; -> [String:a&amp;/a&amp;$a&amp;%a&amp;|a&amp;!a&amp;] (escape only for "{", "}", "#" or "a&amp;")</li>
      *     <li>https://example.com/ http://example.com/ -> [URL:https://example.com/] [String: ] [URL:http://example.com/]
      *         (URLs start with "http://" or "https://" and end at the end of a line or blank)</li>
-     *     <li>https://example.com/?a&aaa#fff aaa       -> [URL:https://example.com/?a&aaa#fff] [String: aaa]
+     *     <li>https://example.com/?aa&amp;aaa#fff aaa       -> [URL:https://example.com/?aa&amp;aaa#fff] [String: aaa]
      *         (URLs are parsed in preference to other special characters.)</li>
      *     <li>aaa example.com aaa -> [String:aaa example.com aaa] (Domain-only URLs are treated as String)</li>
      * </ul>
@@ -282,12 +282,12 @@ public class MinecraftParser {
      *     <li>aaa()            -> aaa []              (allowed empty arguments)</li>
      *     <li>aaa(bbb)         -> aaa ["bbb"]         (arguments enclosed by "( )")</li>
      *     <li>aaa(bbb,ccc)     -> aaa ["bbb","ccc"]   (arguments delimited by ",")</li>
-     *     <li>aaa(b&,bb,ccc)   -> aaa ["b,bb","ccc"]  ("," escaped by "&")</li>
-     *     <li>aaa(b&"bb,ccc)   -> aaa ["b\"bb","ccc"] ("\"" escaped by "&")</li>
-     *     <li>aaa(b&(bb,ccc)   -> aaa ["b)bb","ccc"]  ("(" escaped by "&")</li>
-     *     <li>aaa(b&)bb,ccc)   -> aaa ["b)bb","ccc"]  (")" escaped by "&")</li>
-     *     <li>aaa(b&&bb,ccc)   -> aaa ["b&bb","ccc"]  ("&" escaped by "&")</li>
-     *     <li>aaa(b&bb,ccc)    -> aaa ["b&bb","ccc"]  (escape only for "\"", ",","(", ")" or "&")</li>
+     *     <li>aaa(b&amp;,bb,ccc)   -> aaa ["b,bb","ccc"]  ("," escaped by "&amp;")</li>
+     *     <li>aaa(b&amp;"bb,ccc)   -> aaa ["b\"bb","ccc"] ("\"" escaped by "&amp;")</li>
+     *     <li>aaa(b&amp;(bb,ccc)   -> aaa ["b)bb","ccc"]  ("(" escaped by "&amp;")</li>
+     *     <li>aaa(b&amp;)bb,ccc)   -> aaa ["b)bb","ccc"]  (")" escaped by "&amp;")</li>
+     *     <li>aaa(b&amp;&amp;bb,ccc)   -> aaa ["b&amp;bb","ccc"]  ("&amp;" escaped by "&amp;")</li>
+     *     <li>aaa(b&amp;bb,ccc)    -> aaa ["b&amp;bb","ccc"]  (escape only for "\"", ",","(", ")" or "&amp;")</li>
      *     <li>aaa(b b b,ccc)   -> aaa ["bbb","ccc"]   (white-space ignored)</li>
      *     <li>aaa("b b b",ccc) -> aaa ["b b b","ccc"] (white-space allowed only in "\"")</li>
      *     <li>aaa("b,)b",ccc)  -> aaa ["b,)b","ccc"]  (escape for "," and ")" can be omit in "\"")</li>
