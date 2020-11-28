@@ -118,39 +118,6 @@ public abstract class SubCommand implements TabExecutor {
     }
 
     /**
-     * Get command help
-     *
-     * @return help
-     */
-    public CommandHelp getHelp() {
-        return null;
-    }
-
-    /**
-     * Command Help.
-     */
-    public static class CommandHelp {
-        /**
-         * Command usage.
-         */
-        public final String usage;
-        /**
-         * Command description.
-         */
-        public final String description;
-        /**
-         * Command example.
-         */
-        public final String[] example;
-
-        public CommandHelp(String usage, String description, String... example) {
-            this.usage = usage;
-            this.description = description;
-            this.example = example;
-        }
-    }
-
-    /**
      * Initialize command with lambda.
      *
      * @param command Command
@@ -166,7 +133,6 @@ public abstract class SubCommand implements TabExecutor {
         private boolean playerOnly = false;
         private String requirePermission = null;
         private int minimumArgs = 0;
-        private CommandHelp commandHelp = null;
 
         public static Lambda init() {
             return new Lambda();
@@ -194,11 +160,6 @@ public abstract class SubCommand implements TabExecutor {
 
         public Lambda setMinimumArgs(int minimumArgs) {
             this.minimumArgs = minimumArgs;
-            return this;
-        }
-
-        public Lambda setCommandHelp(CommandHelp commandHelp) {
-            this.commandHelp = commandHelp;
             return this;
         }
 
@@ -237,11 +198,6 @@ public abstract class SubCommand implements TabExecutor {
         @Override
         protected int minimumArgs() {
             return lambda.minimumArgs;
-        }
-
-        @Override
-        public CommandHelp getHelp() {
-            return lambda.commandHelp;
         }
     }
 }

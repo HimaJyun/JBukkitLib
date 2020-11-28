@@ -1,4 +1,4 @@
-package jp.jyn.jbukkitlib.config.parser.template;
+package jp.jyn.jbukkitlib.config.parser;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 
-import static jp.jyn.jbukkitlib.config.parser.template.Parser.*;
+import static jp.jyn.jbukkitlib.config.parser.MinecraftParser.*;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ParserTest {
+public class MinecraftParserTest {
 
     @Test
     public void variableTest1() {
@@ -364,118 +364,118 @@ public class ParserTest {
     public class FunctionTest {
         @Test
         public void argsTest1() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa()");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa()");
 
             assertEquals(e.getKey(),"aaa");
-            assertEquals(e.getValue().length,0);
+            assertEquals(e.getValue().size(),0);
         }
 
         @Test
         public void argsTest2() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(bbb)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(bbb)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("bbb"));
+            assertListEquals(e.getValue(),"bbb");
         }
 
         @Test
         public void argsTest3() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(bbb,ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(bbb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("bbb","ccc"));
+            assertListEquals(e.getValue(),"bbb","ccc");
         }
 
         @Test
         public void escapeTest1() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&,bb,ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(b&,bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b,bb","ccc"));
+            assertListEquals(e.getValue(),"b,bb","ccc");
         }
 
         @Test
         public void escapeTest2() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&\"bb,ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(b&\"bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b\"bb","ccc"));
+            assertListEquals(e.getValue(),"b\"bb","ccc");
         }
 
         @Test
         public void escapeTest3() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&(bb,ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(b&(bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b(bb","ccc"));
+            assertListEquals(e.getValue(),"b(bb","ccc");
         }
 
         @Test
         public void escapeTest4() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&)bb,ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(b&)bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b)bb","ccc"));
+            assertListEquals(e.getValue(),"b)bb","ccc");
         }
 
         @Test
         public void escapeTest5() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&&bb,ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(b&&bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b&bb","ccc"));
+            assertListEquals(e.getValue(),"b&bb","ccc");
         }
 
         @Test
         public void escapeTest6() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b&bb,ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(b&bb,ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b&bb","ccc"));
+            assertListEquals(e.getValue(),"b&bb","ccc");
         }
 
         @Test
         public void whitespaceTest1() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(b b b,ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(b b b,ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("bbb","ccc"));
+            assertListEquals(e.getValue(),"bbb","ccc");
         }
 
         @Test
         public void quoteTest1() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(\"b b b\",ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(\"b b b\",ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b b b","ccc"));
+            assertListEquals(e.getValue(),"b b b","ccc");
         }
 
         @Test
         public void quoteTest2() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(\"b,)b\",ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(\"b,)b\",ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b,)b","ccc"));
+            assertListEquals(e.getValue(),"b,)b","ccc");
         }
 
         @Test
         public void quoteTest3() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(\"bb&&\",ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(\"bb&&\",ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("bb&","ccc"));
+            assertListEquals(e.getValue(),"bb&","ccc");
         }
 
         @Test
         public void quoteTest4() {
-            Map.Entry<String,String[]> e = Parser.parseFunction("aaa(\"b&\"b\",ccc)");
+            Map.Entry<String,List<String>> e = MinecraftParser.parseFunction("aaa(\"b&\"b\",ccc)");
 
             assertEquals(e.getKey(),"aaa");
-            assertArrayEquals(e.getValue(),ary("b\"b","ccc"));
+            assertListEquals(e.getValue(),"b\"b","ccc");
         }
 
-        private String[] ary(String... str) {
-            return str;
+        private void assertListEquals(List<String>list , String... str) {
+            assertArrayEquals(list.toArray(new String[0]),str);
         }
     }
 }

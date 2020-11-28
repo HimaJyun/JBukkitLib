@@ -16,9 +16,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Yaml loader that can specify file name
@@ -167,5 +170,78 @@ public class YamlLoader {
      */
     public static void copyDir(Plugin plugin, String src) {
         copyDir(plugin, src, false);
+    }
+
+    /**
+     * remove extension from filename
+     *
+     * @param file filename
+     * @return filename without extension. If filename does not have extension return as-is.
+     */
+    public static String removeExtension(String file) {
+        int i = file.lastIndexOf('.');
+        return i == -1 ? file : file.substring(0, i);
+    }
+
+    /**
+     * call {@link Path#getFileName()} and remove extension from filename.
+     *
+     * @param file file
+     * @return filename without extension. If filename does not have extension return as-is.
+     */
+    public static String removeExtension(Path file) {
+        return removeExtension(file.getFileName().toString());
+    }
+
+    /**
+     * Finds files with a yml extension in the specified directory.
+     * Note: Does not include yaml.
+     *
+     * @param dir      target directory
+     * @param maxDepth max depth
+     * @return List of files found.
+     */
+    public static List<Path> findYaml(Path dir, int maxDepth) {
+        try (Stream<Path> stream = Files.find(dir, maxDepth, (p, a) -> a.isRegularFile() && p.toString().endsWith(".yml"))) {
+            return stream.collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Finds files with a yml extension in the specified directory.
+     * Note: Does not include yaml.
+     *
+     * @param dir target directory
+     * @return List of files found.
+     */
+    public static List<Path> findYaml(Path dir) {
+        return findYaml(dir, 1);
+    }
+
+    /**
+     * Finds files with a yml extension in the specified directory.
+     * Note: Does not include yaml.
+     *
+     * @param plugin   plugin
+     * @param dir      directory name
+     * @param maxDepth max depth
+     * @return List of files found.
+     */
+    public static List<Path> findYaml(Plugin plugin, String dir, int maxDepth) {
+        return findYaml(plugin.getDataFolder().toPath().resolve(dir), maxDepth);
+    }
+
+    /**
+     * Finds files with a yml extension in the specified directory.
+     * Note: Does not include yaml.
+     *
+     * @param plugin plugin
+     * @param dir    directory name
+     * @return List of files found.
+     */
+    public static List<Path> findYaml(Plugin plugin, String dir) {
+        return findYaml(plugin.getDataFolder().toPath().resolve(dir), 1);
     }
 }
