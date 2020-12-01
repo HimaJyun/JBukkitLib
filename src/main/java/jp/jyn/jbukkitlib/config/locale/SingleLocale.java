@@ -30,7 +30,7 @@ public class SingleLocale<T> implements BukkitLocale<T> {
      * @param name   locale name
      * @param locale locale object
      */
-    private SingleLocale(String name, T locale) {
+    public SingleLocale(String name, T locale) {
         this.name = Objects.requireNonNull(name);
         this.locale = Objects.requireNonNull(locale, "default locale does not allowed null");
     }
