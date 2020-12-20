@@ -17,14 +17,31 @@ import java.util.function.BiFunction;
  * SubCommand class
  */
 public abstract class SubCommand implements TabExecutor {
-    private final static Deque<String> EMPTY_DEQUE = EmptyDeque.getInstanceException();
-
     /**
      * Execution result
      */
     public enum Result {
         OK, ERROR, UNKNOWN_COMMAND,
         PLAYER_ONLY, DONT_HAVE_PERMISSION, MISSING_ARGUMENT
+    }
+
+    private final static Deque<String> EMPTY_DEQUE = EmptyDeque.getInstanceException();
+    private final String permission;
+    private final boolean isPlayerOnly;
+    private final int minimumArgs;
+
+    protected SubCommand() {
+        Class clazz = this.getClass();
+        CommandMode mode = (CommandMode) clazz.getAnnotation(CommandMode.class);
+        if (mode == null) {
+            this.permission = null;
+            this.isPlayerOnly = false;
+            this.minimumArgs = 0;
+        } else {
+            this.permission = mode.permission().isEmpty() ? null : mode.permission();
+            this.isPlayerOnly = mode.playerOnly();
+            this.minimumArgs = mode.minimumArgs();
+        }
     }
 
     @Override
@@ -96,7 +113,7 @@ public abstract class SubCommand implements TabExecutor {
      * @return If true then for players only
      */
     protected boolean isPlayerOnly() {
-        return false;
+        return isPlayerOnly;
     }
 
     /**
@@ -105,7 +122,7 @@ public abstract class SubCommand implements TabExecutor {
      * @return Permission
      */
     protected String requirePermission() {
-        return null;
+        return permission;
     }
 
     /**
@@ -114,7 +131,7 @@ public abstract class SubCommand implements TabExecutor {
      * @return minimum args.
      */
     protected int minimumArgs() {
-        return 0;
+        return minimumArgs;
     }
 
     /**

@@ -183,14 +183,18 @@ public class UUIDConverter {
 
         private UUID toUUID(StringBuilder builder, String id) {
             builder.setLength(0);
-            builder.append(id);
 
             // 3,d,4,1,8,7,e,5,-, 5, 5, 6, 5, -, 4, 8, a, 3, -, 8, 9, 9, f, -, 0, f, c, c, 3, 6, 5, e, 7, 0, 8, 4
-            // 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36
-            builder.insert(8, '-');
-            builder.insert(13, '-');
-            builder.insert(18, '-');
-            builder.insert(23, '-');
+            // 1,2,3,4,5,6,7,8,   9,10,11,12,    13,14,15,16,   17,18,19,20,   21,22,23,24,25,26,27,28,29,30,31,32
+            builder.append(id, 0, 8);
+            builder.append('-');
+            builder.append(id, 8, 12);
+            builder.append('-');
+            builder.append(id, 12, 16);
+            builder.append('-');
+            builder.append(id, 16, 20);
+            builder.append('-');
+            builder.append(id, 20, 32);
             return UUID.fromString(builder.toString());
         }
     }

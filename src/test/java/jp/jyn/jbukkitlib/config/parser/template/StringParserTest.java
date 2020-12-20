@@ -11,14 +11,14 @@ public class StringParserTest {
     @Test
     public void rawStringTest1() {
         parser = TemplateParser.parse("raw string");
-        assertEquals(parser.getClass().getName(),"jp.jyn.jbukkitlib.config.parser.template.Node$RawParser");
+        assertEquals(parser.getClass().getName(), "jp.jyn.jbukkitlib.config.parser.template.Node$RawParser");
         assertEquals(parser.apply(), "raw string");
     }
 
     @Test
     public void rawStringTest2() {
         parser = TemplateParser.parse("raw &0string&r&");
-        assertEquals(parser.getClass().getName(),"jp.jyn.jbukkitlib.config.parser.template.Node$RawParser");
+        assertEquals(parser.getClass().getName(), "jp.jyn.jbukkitlib.config.parser.template.Node$RawParser");
         assertEquals(parser.apply(), "raw " + ChatColor.BLACK + "string" + ChatColor.RESET + "&");
     }
 
@@ -161,7 +161,7 @@ public class StringParserTest {
     public void variableTest6() {
         parser = TemplateParser.parse("{a}{b}{c}");
         assertEquals(
-            parser.apply(StringVariable.init().put("a", "aaa", "b", "bbb","c")),
+            parser.apply(StringVariable.init().put("a", "aaa", "b", "bbb", "c")),
             "aaabbb{c}"
         );
     }

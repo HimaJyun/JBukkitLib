@@ -1,5 +1,6 @@
 package jp.jyn.jbukkitlib.config;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -15,8 +16,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
@@ -103,6 +112,72 @@ public class YamlLoader {
             YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8)));
     }
 
+    /**
+     * Iterates the child elements of the specified ConfigurationSection.
+     *
+     * @param config   ConfigurationSection
+     * @param consumer The ConfigurationSection of the child element is passed as an argument.
+     */
+    public static void section(ConfigurationSection config, Consumer<ConfigurationSection> consumer) {
+        if (config == null) return;
+
+        for (String k : config.getKeys(false)) {
+            if (config.isConfigurationSection(k)) {
+                consumer.accept(Objects.requireNonNull(config.getConfigurationSection(k)));
+            }
+        }
+    }
+
+    /**
+     * Iterates the child elements of the specified ConfigurationSection.
+     *
+     * @param config   ConfigurationSection
+     * @param consumer The key of the child element and the ConfigurationSection passed as an argument are passed.
+     */
+    public static void section(ConfigurationSection config, BiConsumer<String, ConfigurationSection> consumer) {
+        if (config == null) return;
+
+        for (String k : config.getKeys(false)) {
+            consumer.accept(k, config);
+        }
+    }
+
+    /**
+     * Create a Map using the section keys and values.
+     *
+     * @param config ConfigurationSection
+     * @param mapper The ConfigurationSection of the child element is passed as an argument.
+     * @param <E>    Element type
+     * @return Map
+     */
+    public static <E> Map<String, E> section(ConfigurationSection config, Function<ConfigurationSection, E> mapper) {
+        if (config == null) return Collections.emptyMap();
+
+        Map<String, E> result = new HashMap<>();
+        for (String k : config.getKeys(false)) {
+            if (!config.isConfigurationSection(k)) continue;
+            result.put(k, mapper.apply(Objects.requireNonNull(config.getConfigurationSection(k))));
+        }
+        return result;
+    }
+
+    /**
+     * Create a Map using the section keys and values.
+     *
+     * @param config ConfigurationSection
+     * @param mapper The key of the child element and the ConfigurationSection passed as an argument are passed.
+     * @param <E>    Element type
+     * @return Map
+     */
+    public static <E> Map<String, E> section(ConfigurationSection config, BiFunction<String, ConfigurationSection, E> mapper) {
+        if (config == null) return Collections.emptyMap();
+
+        Map<String, E> result = new HashMap<>();
+        for (String k : config.getKeys(false)) {
+            result.put(k, mapper.apply(k, config));
+        }
+        return result;
+    }
 
     /**
      * Copy directory from plugin jar.
