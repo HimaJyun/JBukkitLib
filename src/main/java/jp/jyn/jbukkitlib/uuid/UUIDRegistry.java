@@ -313,7 +313,7 @@ public class UUIDRegistry {
         return BukkitCompletableFuture.supplyAsync(plugin, () -> {
             for (UUID uuid : request) {
                 // The Mojang API does not have an API to convert multiple UUIDs to names.
-                // "It is insanely efficient", but simply executes multiple calls.
+                // It is "insanely inefficient", but simply executes multiple calls.
                 // Do you believe Keep-Alive? I believe.
                 final Optional<String> name = (new UUIDConverter.NameGetter(uuid)).callEx();
 

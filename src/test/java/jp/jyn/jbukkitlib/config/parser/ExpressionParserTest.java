@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("PointlessArithmeticExpression")
 public class ExpressionParserTest {
@@ -66,8 +66,8 @@ public class ExpressionParserTest {
 
     @Test
     public void function() {
-        assertEquals(-10, new ExpressionParser("negative(10)").calc(), 0);
-        assertEquals(Math.abs(-10), new ExpressionParser("abs(negative(10))").calc(), 0);
+        assertEquals(-10, new ExpressionParser("negate(10)").calc(), 0);
+        assertEquals(Math.abs(-10), new ExpressionParser("abs(negate(10))").calc(), 0);
         assertEquals(Math.min(1, 2), new ExpressionParser("min(1,2)").calc(), 0);
         // random
         ExpressionParser p = new ExpressionParser("floor(random()*(max-min-1))+min");
@@ -84,7 +84,7 @@ public class ExpressionParserTest {
         int x1 = 100, y1 = 200, z1 = 300, x2 = 400, y2 = 500, z2 = 600;
         ExpressionParser p = new ExpressionParser(String.format("sqrt(pow(%d-%d,2)+pow(%d-%d,2)+pow(%d-%d,2))", x1, x2, y1, y2, z1, z2));
         assertEquals(Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2) + Math.pow(z1 - z2, 2)), p.calc(), 0);
-        assertEquals(1 + Math.min(1, Math.abs(-(5 * 10))), new ExpressionParser("1+min(1,abs(negative(5*10)))").calc(), 0);
+        assertEquals(1 + Math.min(1, Math.abs(-(5 * 10))), new ExpressionParser("1+min(1,abs(negate(5*10)))").calc(), 0);
 
         Map<String, Double> variable = MapBuilder.initMap(new HashMap<>(), m -> {
             m.put("x1", (double) x1);

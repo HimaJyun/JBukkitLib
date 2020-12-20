@@ -12,7 +12,7 @@ public interface ErrorExecutor {
      * onError
      *
      * @param error error info
-     * @return result a boolean to return with onCommand
+     * @return result a boolean to return with {@link org.bukkit.command.CommandExecutor#onCommand(CommandSender, Command, String, String[])}
      */
     boolean onError(Info error);
 
@@ -25,12 +25,12 @@ public interface ErrorExecutor {
          */
         public final SubCommand.Result cause;
         /**
-         * <p>The subcommand you attempted to execute</p>
-         * <p>Note: It is null if it is called with no argument specified when the default command is not set</p>
+         * <p>SubCommand that the player tried to execute.</p>
+         * <p>Note: It is null if it is called with no argument specified when the default command is not set.</p>
          */
         public final String subArgs;
         /**
-         * <p>The subcommand you attempted to execute</p>
+         * <p>SubCommand that the player tried to execute.</p>
          * <p>Note: It is null if no subcommand was found.</p>
          */
         public final SubCommand subCommand;

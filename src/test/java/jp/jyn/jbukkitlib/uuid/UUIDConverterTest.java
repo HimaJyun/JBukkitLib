@@ -27,6 +27,13 @@ public class UUIDConverterTest {
 
     @Disabled
     @Test
+    public void multipleUUIDGetterTest() throws Exception {
+        Map<String, UUID> result = new UUIDConverter.MultipleUUIDGetter("himajyun", "nuyjamih").call();
+        System.out.println(result);
+    }
+
+    @Disabled
+    @Test
     public void nameGetterTest() throws Exception {
         Optional<String> result = new UUIDConverter.NameGetter(himajyun).call();
         assertTrue(result.isPresent());

@@ -284,13 +284,15 @@ public class MinecraftParser {
      *     <li>aaa(bbb,ccc)     -> aaa ["bbb","ccc"]   (arguments delimited by ",")</li>
      *     <li>aaa(b&amp;,bb,ccc)   -> aaa ["b,bb","ccc"]  ("," escaped by "&amp;")</li>
      *     <li>aaa(b&amp;"bb,ccc)   -> aaa ["b\"bb","ccc"] ("\"" escaped by "&amp;")</li>
+     *     <li>aaa(b&amp;'bb,ccc)   -> aaa ["b'bb","ccc"] ("'" escaped by "&amp;")</li>
      *     <li>aaa(b&amp;(bb,ccc)   -> aaa ["b)bb","ccc"]  ("(" escaped by "&amp;")</li>
      *     <li>aaa(b&amp;)bb,ccc)   -> aaa ["b)bb","ccc"]  (")" escaped by "&amp;")</li>
      *     <li>aaa(b&amp;&amp;bb,ccc)   -> aaa ["b&amp;bb","ccc"]  ("&amp;" escaped by "&amp;")</li>
      *     <li>aaa(b&amp;bb,ccc)    -> aaa ["b&amp;bb","ccc"]  (escape only for "\"", ",","(", ")" or "&amp;")</li>
      *     <li>aaa(b b b,ccc)   -> aaa ["bbb","ccc"]   (white-space ignored)</li>
      *     <li>aaa("b b b",ccc) -> aaa ["b b b","ccc"] (white-space allowed only in "\"")</li>
-     *     <li>aaa("b,)b",ccc)  -> aaa ["b,)b","ccc"]  (escape for "," and ")" can be omit in "\"")</li>
+     *     <li>aaa("b,)'b",ccc)  -> aaa ["b,)'b","ccc"]  (escape for "," and "'" and ")" can be omit in "\"")</li>
+     *     <li>aaa('b,)"b',ccc)  -> aaa ["b,)\"b","ccc"]  (escape for "," and "\"" and ")" can be omit in "\"")</li>
      * </ul>
      * function name is allowed  in any characters except parentheses. (even if it empty)<br>
      * but, common characters ([a-zA-Z0-9_]) are recommended.
@@ -316,9 +318,8 @@ public class MinecraftParser {
 
         StringBuilder buf = new StringBuilder();
         boolean escape = false;
-        boolean quote = false;
+        char quote = '\0';
 
-        // OUT: for...IDEA settings does not support this style.
         OUT:
         for (int i = 0; i < rawArgs.length(); i++) {
             char c = rawArgs.charAt(i);
@@ -326,6 +327,7 @@ public class MinecraftParser {
             if (escape) {
                 switch (c) {
                     case '"':
+                    case '\'':
                     case '&':
                     case ',':
                     case '(':
@@ -340,14 +342,17 @@ public class MinecraftParser {
                 continue;
             }
 
-            if (quote) {
+            if (quote != '\0') {
                 switch (c) {
                     case '&':
                         escape = true;
                         break;
                     case '"':
-                        quote = false;
-                        break;
+                    case '\'':
+                        if (quote == c) {
+                            quote = '\0';
+                            break;
+                        }
                     default:
                         buf.append(c);
                         break;
@@ -357,7 +362,8 @@ public class MinecraftParser {
 
             switch (c) {
                 case '"':
-                    quote = true;
+                case '\'':
+                    quote = c;
                     continue;
                 case '&':
                     escape = true;
