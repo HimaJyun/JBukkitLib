@@ -4,8 +4,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -53,6 +57,35 @@ public class SingleLocale<T> implements BukkitLocale<T> {
     @Override
     public T get() {
         return locale;
+    }
+
+    @Override
+    public Map<T, List<Player>> get(Player... players) {
+        return Collections.singletonMap(locale, Arrays.asList(players));
+    }
+
+    @Override
+    public Map<T, List<CommandSender>> get(CommandSender... senders) {
+        return Collections.singletonMap(locale, Arrays.asList(senders));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Map<T, List<CommandSender>> getSenders(Collection<? extends CommandSender> senders) {
+        if (senders instanceof List) {
+            return Collections.singletonMap(locale, (List<CommandSender>) senders);
+        } else {
+            return Collections.singletonMap(locale, new ArrayList<>(senders));
+        }
+    }
+
+    @Override
+    public Map<T, List<Player>> getPlayers(Collection<Player> players) {
+        if (players instanceof List) {
+            return Collections.singletonMap(locale, (List<Player>) players);
+        } else {
+            return Collections.singletonMap(locale, new ArrayList<>(players));
+        }
     }
 
     @Override
