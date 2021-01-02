@@ -69,6 +69,8 @@ public class ExpressionParserTest {
         assertEquals(-10, new ExpressionParser("negate(10)").calc(), 0);
         assertEquals(Math.abs(-10), new ExpressionParser("abs(negate(10))").calc(), 0);
         assertEquals(Math.min(1, 2), new ExpressionParser("min(1,2)").calc(), 0);
+        assertEquals(Math.PI,new ExpressionParser("pi()").calc());
+        assertEquals(Math.E,new ExpressionParser("e()").calc());
         // random
         ExpressionParser p = new ExpressionParser("floor(random()*(max-min-1))+min");
         Map<String, Double> variable = new HashMap<>();

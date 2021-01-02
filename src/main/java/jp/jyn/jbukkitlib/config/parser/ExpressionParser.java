@@ -17,7 +17,8 @@ import java.util.function.DoubleUnaryOperator;
  * <p>Available functions:
  * abs, sin, cos, tan, sinh, cosh, tanh, asin, acos, atan,
  * round, floor, ceil, exp, log, log10, log1p, sqrt, cbrt,
- * signum, negate, min, max, pow, hypot, scale, random</p>
+ * signum, radian, degrees, negate, min, max, pow, hypot,
+ * scale, random, pi, e</p>
  */
 public class ExpressionParser {
     private final Node node;
@@ -79,10 +80,8 @@ public class ExpressionParser {
         Queue<String> exp = exprQueue(expression);
 
         Node last = term(exp);
-        while (true) {
-            if (exp.isEmpty()) {
-                break;
-            } else switch (exp.peek()) {
+        while (!exp.isEmpty()) {
+            switch (exp.peek()) {
                 case "+":
                     exp.remove();
                     last = new BinaryOperatorNode((left, right) -> left + right, last, term(exp));
@@ -99,10 +98,8 @@ public class ExpressionParser {
 
     private static Node term(Queue<String> exp) {
         Node last = factor(exp);
-        while (true) {
-            if (exp.isEmpty()) {
-                break;
-            } else switch (exp.peek()) {
+        while (!exp.isEmpty()) {
+            switch (exp.peek()) {
                 case "*":
                     exp.remove();
                     last = new BinaryOperatorNode((left, right) -> left * right, last, factor(exp));
@@ -145,6 +142,7 @@ public class ExpressionParser {
 
     private final static Map<String, DoubleUnaryOperator> UNARY_FUNCTIONS;
     private final static Map<String, DoubleBinaryOperator> BINARY_FUNCTIONS;
+    private final static Map<String, Node> SUPPLIER_FUNCTIONS;
 
     static {
         Map<String, DoubleUnaryOperator> u = new HashMap<>();
@@ -168,6 +166,8 @@ public class ExpressionParser {
         u.put("sqrt", Math::sqrt);
         u.put("cbrt", Math::cbrt);
         u.put("signum", Math::signum);
+        u.put("radian", Math::toRadians);
+        u.put("degrees", Math::toDegrees);
         u.put("negate", d -> -d);
         UNARY_FUNCTIONS = Collections.unmodifiableMap(u);
 
@@ -177,7 +177,14 @@ public class ExpressionParser {
         b.put("pow", Math::pow);
         b.put("hypot", Math::hypot);
         b.put("scale", (d, scale) -> BigDecimal.valueOf(d).setScale((int) scale, RoundingMode.DOWN).doubleValue());
+        b.put("range", (min, max) -> ThreadLocalRandom.current().nextDouble(min, max));
         BINARY_FUNCTIONS = Collections.unmodifiableMap(b);
+
+        Map<String, Node> s = new HashMap<>();
+        s.put("random", new RandomNode());
+        s.put("pi", new NumberNode(Math.PI));
+        s.put("e", new NumberNode(Math.E));
+        SUPPLIER_FUNCTIONS = Collections.unmodifiableMap(s);
     }
 
     private static Node function(String value) {
@@ -198,15 +205,15 @@ public class ExpressionParser {
 
         DoubleBinaryOperator binaryOperator = BINARY_FUNCTIONS.get(func);
         if (binaryOperator == null) {
-            // special
-            if (func.equals("random")) {
-                return RandomNode.instance;
+            // supplier
+            Node supplier = SUPPLIER_FUNCTIONS.get(func);
+            if (supplier != null) {
+                return supplier;
             }
             throw new IllegalArgumentException("Unknown function:" + func);
         }
 
         // parse left/right expression.
-        // need help: How to realize with regex?
         int nest = 0;
         Node left = null;
         Node right = null;
@@ -331,8 +338,6 @@ public class ExpressionParser {
     }
 
     private static class RandomNode implements Node {
-        public final static RandomNode instance = new RandomNode();
-
         private RandomNode() { }
 
         @Override
