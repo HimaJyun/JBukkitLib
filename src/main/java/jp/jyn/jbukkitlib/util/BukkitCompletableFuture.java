@@ -62,6 +62,10 @@ public class BukkitCompletableFuture<T> implements CompletionStage<T>, Future<T>
         return new BukkitCompletableFuture<>(plugin, CompletableFuture.anyOf(cfs));
     }
 
+    public static <U> BukkitCompletableFuture<U> failedFuture(Plugin plugin, Throwable ex) {
+        return new BukkitCompletableFuture<>(plugin, CompletableFuture.failedFuture(ex));
+    }
+
     public static <U> BukkitCompletableFuture<U> wrap(Plugin plugin, CompletableFuture<U> future) {
         return new BukkitCompletableFuture<>(plugin, future);
     }
@@ -497,6 +501,30 @@ public class BukkitCompletableFuture<T> implements CompletionStage<T>, Future<T>
         return wrap(future.exceptionally(fn));
     }
 
+    public BukkitCompletableFuture<T> orTimeout(long timeout, TimeUnit unit) {
+        return wrap(future.orTimeout(timeout, unit));
+    }
+
+    public <U> BukkitCompletableFuture<U> newIncompleteFuture() {
+        return wrap(future.newIncompleteFuture());
+    }
+
+    public BukkitCompletableFuture<T> copy() {
+        return wrap(future.copy());
+    }
+
+    public BukkitCompletableFuture<T> completeAsync(Supplier<? extends T> supplier, Executor executor) {
+        return wrap(future.completeAsync(supplier, executor));
+    }
+
+    public BukkitCompletableFuture<T> completeAsync(Supplier<? extends T> supplier) {
+        return wrap(future.completeAsync(supplier));
+    }
+
+    public BukkitCompletableFuture<T> completeOnTimeout(T value, long timeout, TimeUnit unit) {
+        return wrap(future.completeOnTimeout(value, timeout, unit));
+    }
+
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         return future.cancel(mayInterruptIfRunning);
@@ -521,6 +549,34 @@ public class BukkitCompletableFuture<T> implements CompletionStage<T>, Future<T>
 
     public int getNumberOfDependents() {
         return future.getNumberOfDependents();
+    }
+
+    public Executor defaultExecutor() {
+        return future.defaultExecutor();
+    }
+
+    public CompletionStage<T> minimalCompletionStage() {
+        return future.minimalCompletionStage();
+    }
+
+    public static Executor delayedExecutor(long delay, TimeUnit unit, Executor executor) {
+        return CompletableFuture.delayedExecutor(delay, unit, executor);
+    }
+
+    public static Executor delayedExecutor(long delay, TimeUnit unit) {
+        return CompletableFuture.delayedExecutor(delay, unit);
+    }
+
+    public static <U> CompletionStage<U> completedStage(U value) {
+        return CompletableFuture.completedStage(value);
+    }
+
+    public static <U> CompletableFuture<U> failedFuture(Throwable ex) {
+        return CompletableFuture.failedFuture(ex);
+    }
+
+    public static <U> CompletionStage<U> failedStage(Throwable ex) {
+        return CompletableFuture.failedStage(ex);
     }
 
     @Override
