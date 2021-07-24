@@ -58,14 +58,14 @@ public class ItemStackParser {
             switch (c) {
                 case '[':
                     if (buf.length() != 0) {
-                        material = Material.getMaterial(buf.toString().toUpperCase(Locale.ENGLISH));
+                        material = Material.getMaterial(buf.toString().toUpperCase(Locale.ROOT));
                         buf.setLength(0);
                     }
                     bracket = true;
                     break;
                 case '*':
                     if (buf.length() != 0) {
-                        material = Material.getMaterial(buf.toString().toUpperCase(Locale.ENGLISH));
+                        material = Material.getMaterial(buf.toString().toUpperCase(Locale.ROOT));
                         buf.setLength(0);
                     }
                     asterisk = true;
@@ -79,7 +79,7 @@ public class ItemStackParser {
             if (asterisk) {
                 amount = Integer.parseInt(buf.toString());
             } else {
-                material = Material.getMaterial(buf.toString().toUpperCase(Locale.ENGLISH));
+                material = Material.getMaterial(buf.toString().toUpperCase(Locale.ROOT));
             }
         }
 
@@ -191,7 +191,7 @@ public class ItemStackParser {
             level = Integer.valueOf(tmp[1]);
         }
 
-        enchantment = Enchantment.getByKey(NamespacedKey.minecraft(tmp[0].toLowerCase(Locale.ENGLISH)));
+        enchantment = Enchantment.getByKey(NamespacedKey.minecraft(tmp[0].toLowerCase(Locale.ROOT)));
         if (enchantment == null) {
             throw new IllegalArgumentException("Invalid enchantment: " + value);
         }

@@ -333,6 +333,6 @@ public class UUIDRegistry {
     // endregion
 
     private static String lower(String str) {
-        return str.toLowerCase(Locale.ENGLISH);
+        return str.toLowerCase(Locale.ROOT);
     }
 }
