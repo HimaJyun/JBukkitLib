@@ -3,7 +3,6 @@ package jp.jyn.jbukkitlib.config.parser;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
@@ -18,7 +17,7 @@ import java.util.function.DoubleUnaryOperator;
  * abs, sin, cos, tan, sinh, cosh, tanh, asin, acos, atan,
  * round, floor, ceil, exp, log, log10, log1p, sqrt, cbrt,
  * signum, radian, degrees, negate, min, max, pow, hypot,
- * scale, random, pi, e</p>
+ * eq, ne, gt, lt, ge ,le, scale, random, pi, e</p>
  */
 public class ExpressionParser {
     private final Node node;
@@ -89,6 +88,7 @@ public class ExpressionParser {
             switch (v.charAt(0)) {
                 case '+':
                     exp.remove();
+                    //noinspection Convert2MethodRef
                     last = new BinaryOperatorNode((left, right) -> left + right, last, term(exp));
                     continue;
                 case '-':
@@ -150,52 +150,52 @@ public class ExpressionParser {
         return function(value);
     }
 
-    private final static Map<String, DoubleUnaryOperator> UNARY_FUNCTIONS;
-    private final static Map<String, DoubleBinaryOperator> BINARY_FUNCTIONS;
-    private final static Map<String, Node> SUPPLIER_FUNCTIONS;
+    private final static Map<String, DoubleUnaryOperator> UNARY_FUNCTIONS = Map.ofEntries(
+        Map.entry("abs", Math::abs),
+        Map.entry("sin", Math::sin),
+        Map.entry("cos", Math::cos),
+        Map.entry("tan", Math::tan),
+        Map.entry("sinh", Math::sinh),
+        Map.entry("cosh", Math::cosh),
+        Map.entry("tanh", Math::tanh),
+        Map.entry("asin", Math::asin),
+        Map.entry("acos", Math::acos),
+        Map.entry("atan", Math::atan),
+        Map.entry("round", Math::round),
+        Map.entry("floor", Math::floor),
+        Map.entry("ceil", Math::ceil),
+        Map.entry("exp", Math::exp),
+        Map.entry("log", Math::log),
+        Map.entry("log10", Math::log10),
+        Map.entry("log1p", Math::log1p),
+        Map.entry("sqrt", Math::sqrt),
+        Map.entry("cbrt", Math::cbrt),
+        Map.entry("signum", Math::signum),
+        Map.entry("radian", Math::toRadians),
+        Map.entry("degrees", Math::toDegrees),
+        Map.entry("negate", d -> -d)
+    );
 
-    static {
-        Map<String, DoubleUnaryOperator> u = new HashMap<>();
-        u.put("abs", Math::abs);
-        u.put("sin", Math::sin);
-        u.put("cos", Math::cos);
-        u.put("tan", Math::tan);
-        u.put("sinh", Math::sinh);
-        u.put("cosh", Math::cosh);
-        u.put("tanh", Math::tanh);
-        u.put("asin", Math::asin);
-        u.put("acos", Math::acos);
-        u.put("atan", Math::atan);
-        u.put("round", Math::round);
-        u.put("floor", Math::floor);
-        u.put("ceil", Math::ceil);
-        u.put("exp", Math::exp);
-        u.put("log", Math::log);
-        u.put("log10", Math::log10);
-        u.put("log1p", Math::log1p);
-        u.put("sqrt", Math::sqrt);
-        u.put("cbrt", Math::cbrt);
-        u.put("signum", Math::signum);
-        u.put("radian", Math::toRadians);
-        u.put("degrees", Math::toDegrees);
-        u.put("negate", d -> -d);
-        UNARY_FUNCTIONS = Collections.unmodifiableMap(u);
+    private final static Map<String, DoubleBinaryOperator> BINARY_FUNCTIONS = Map.ofEntries(
+        Map.entry("min", Math::min),
+        Map.entry("max", Math::max),
+        Map.entry("pow", Math::pow),
+        Map.entry("hypot", Math::hypot),
+        Map.entry("eq", (v1, v2) -> v1 == v2 ? 1.0 : 0.0),
+        Map.entry("ne", (v1, v2) -> v1 != v1 ? 1.0 : 0.0),
+        Map.entry("gt", (v1, v2) -> v1 > v2 ? 1.0 : 0.0),
+        Map.entry("ge", (v1, v2) -> v1 >= v2 ? 1.0 : 0.0),
+        Map.entry("lt", (v1, v2) -> v1 < v2 ? 1.0 : 0.0),
+        Map.entry("le", (v1, v2) -> v1 <= v2 ? 1.0 : 0.0),
+        Map.entry("scale", (d, scale) -> BigDecimal.valueOf(d).setScale((int) scale, RoundingMode.DOWN).doubleValue()),
+        Map.entry("range", (min, max) -> ThreadLocalRandom.current().nextDouble(min, max))
+    );
 
-        Map<String, DoubleBinaryOperator> b = new HashMap<>();
-        b.put("min", Math::min);
-        b.put("max", Math::max);
-        b.put("pow", Math::pow);
-        b.put("hypot", Math::hypot);
-        b.put("scale", (d, scale) -> BigDecimal.valueOf(d).setScale((int) scale, RoundingMode.DOWN).doubleValue());
-        b.put("range", (min, max) -> ThreadLocalRandom.current().nextDouble(min, max));
-        BINARY_FUNCTIONS = Collections.unmodifiableMap(b);
-
-        Map<String, Node> s = new HashMap<>();
-        s.put("random", new RandomNode());
-        s.put("pi", new NumberNode(Math.PI));
-        s.put("e", new NumberNode(Math.E));
-        SUPPLIER_FUNCTIONS = Collections.unmodifiableMap(s);
-    }
+    private final static Map<String, Node> SUPPLIER_FUNCTIONS = Map.of(
+        "random", new RandomNode(),
+        "pi", new NumberNode(Math.PI),
+        "e", new NumberNode(Math.E)
+    );
 
     private static Node function(String value) {
         // func(123+456) -> func,123+456)
