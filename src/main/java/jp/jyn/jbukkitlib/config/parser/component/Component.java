@@ -38,7 +38,7 @@ public class Component implements Cloneable {
      * @return for method chain
      */
     public Component actionbar(Iterable<Player> players) {
-        for (Player player : players) {
+        for (var player : players) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
         }
         return this;
@@ -51,7 +51,7 @@ public class Component implements Cloneable {
      * @return for method chain
      */
     public Component actionbar(Player... players) {
-        for (Player player : players) {
+        for (var player : players) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
         }
         return this;
@@ -75,7 +75,7 @@ public class Component implements Cloneable {
      * @return for method chain
      */
     public Component send(Iterable<CommandSender> senders) {
-        for (CommandSender sender : senders) {
+        for (var sender : senders) {
             sender.spigot().sendMessage(components);
         }
         return this;
@@ -88,7 +88,7 @@ public class Component implements Cloneable {
      * @return for method chain
      */
     public Component send(CommandSender... senders) {
-        for (CommandSender sender : senders) {
+        for (var sender : senders) {
             sender.spigot().sendMessage(components);
         }
         return this;

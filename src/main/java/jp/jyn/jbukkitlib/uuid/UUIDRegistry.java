@@ -266,7 +266,7 @@ public class UUIDRegistry {
 
             // "Correct name" might be different as "Requested name." (Upper or lower case letters, etc.)
             // Since we do not know "Correct name" from the caller of this method, we need to convert it to "Requested name".
-            for (Map.Entry<String, UUID> entry : uuid.entrySet()) {
+            for (var entry : uuid.entrySet()) {
                 // update cache.
                 updateCache(entry.getValue(), entry.getKey());
 

@@ -101,7 +101,7 @@ public class LazyLocale<T> implements BukkitLocale<T> {
 
         Map<String, T> v = new HashMap<>();
         v.put(defaultLocaleName, locales.get(defaultLocaleName));
-        for (Map.Entry<String, T> e : locales.entrySet()) {
+        for (var e : locales.entrySet()) {
             // default以外でdefaultと同じ物 == initializerがnullを返したのでdefaultを使ってる奴はスキップ
             if (e.getValue() == defaultLocale) { // NOT BUG
                 continue;

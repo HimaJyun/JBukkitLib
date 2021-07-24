@@ -157,10 +157,9 @@ public interface TemplateParser {
         List<Node> nodes = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder();
-        for (MinecraftParser.Node node : MinecraftParser.parse(str)) {
+        for (var node : MinecraftParser.parse(str)) {
             switch (node.type) {
-                case URL:
-                case STRING:
+                case URL, STRING:
                     sb.append(node.getValue());
                     break;
                 case MC_COLOR:

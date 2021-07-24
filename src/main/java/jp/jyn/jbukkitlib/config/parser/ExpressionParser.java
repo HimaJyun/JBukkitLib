@@ -81,12 +81,17 @@ public class ExpressionParser {
 
         Node last = term(exp);
         while (!exp.isEmpty()) {
-            switch (exp.peek()) {
-                case "+":
+            var v = exp.peek();
+            if (v.length() != 1) {
+                break;
+            }
+
+            switch (v.charAt(0)) {
+                case '+':
                     exp.remove();
                     last = new BinaryOperatorNode((left, right) -> left + right, last, term(exp));
                     continue;
-                case "-":
+                case '-':
                     exp.remove();
                     last = new BinaryOperatorNode((left, right) -> left - right, last, term(exp));
                     continue;
@@ -99,20 +104,25 @@ public class ExpressionParser {
     private static Node term(Queue<String> exp) {
         Node last = factor(exp);
         while (!exp.isEmpty()) {
-            switch (exp.peek()) {
-                case "*":
+            var v = exp.peek();
+            if (v.length() != 1) {
+                break;
+            }
+
+            switch (v.charAt(0)) {
+                case '*':
                     exp.remove();
                     last = new BinaryOperatorNode((left, right) -> left * right, last, factor(exp));
                     continue;
-                case "/":
+                case '/':
                     exp.remove();
                     last = new BinaryOperatorNode((left, right) -> left / right, last, factor(exp));
                     continue;
-                case "%":
+                case '%':
                     exp.remove();
                     last = new BinaryOperatorNode((left, right) -> left % right, last, factor(exp));
                     continue;
-                case "^":
+                case '^':
                     exp.remove();
                     last = new BinaryOperatorNode(Math::pow, last, factor(exp));
                     continue;
@@ -271,12 +281,7 @@ public class ExpressionParser {
                     nest += 1;
                     buf.append(c);
                     break;
-                case '+':
-                case '-':
-                case '*':
-                case '/':
-                case '%':
-                case '^':
+                case '+', '-', '*', '/', '%', '^':
                     if (buf.length() != 0) {
                         exp.add(buf.toString());
                         buf.setLength(0);

@@ -90,8 +90,8 @@ public class ItemStackParser {
         ItemStack itemStack = new ItemStack(material, amount);
         // add enchant
         if (material == Material.ENCHANTED_BOOK) {
-            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemStack.getItemMeta();
-            for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
+            var meta = (EnchantmentStorageMeta) itemStack.getItemMeta();
+            for (var entry : enchantments.entrySet()) {
                 meta.addStoredEnchant(entry.getKey(), entry.getValue(), true);
             }
             itemStack.setItemMeta(meta);
@@ -116,7 +116,7 @@ public class ItemStackParser {
         // Material[Enchant@level]
         Map<Enchantment, Integer> enchantments;
         if (itemStack.getType() == Material.ENCHANTED_BOOK) {
-            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemStack.getItemMeta();
+            var meta = (EnchantmentStorageMeta) itemStack.getItemMeta();
             enchantments = meta.getStoredEnchants();
         } else {
             enchantments = itemStack.getEnchantments();
@@ -141,8 +141,8 @@ public class ItemStackParser {
      */
     public static Map<Enchantment, Integer> parseEnchantments(String value) {
         Map<Enchantment, Integer> result = new HashMap<>();
-        for (String s : value.split(",")) {
-            Map.Entry<Enchantment, Integer> entry = parseEnchantment(s);
+        for (var s : value.split(",")) {
+            var entry = parseEnchantment(s);
             result.put(entry.getKey(), entry.getValue());
         }
         return result;
@@ -164,14 +164,13 @@ public class ItemStackParser {
         }
 
         boolean first = true;
-        for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
+        for (var entry : enchantments.entrySet()) {
             if (first) {
                 first = false;
             } else {
                 builder.append(',');
             }
             // Enchant
-            //noinspection ResultOfMethodCallIgnored
             toString(builder, entry.getKey(), entry.getValue());
         }
         return builder;

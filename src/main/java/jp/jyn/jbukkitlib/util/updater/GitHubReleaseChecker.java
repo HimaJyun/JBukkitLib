@@ -36,7 +36,7 @@ public class GitHubReleaseChecker implements UpdateChecker {
             throw new HttpNotOKException(connection.getResponseCode(), connection.getResponseMessage());
         }
 
-        try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
+        try (var reader = new InputStreamReader(connection.getInputStream())) {
             JsonObject json = gson.fromJson(reader, JsonObject.class);
             cache = new LatestVersion(
                 json.get("tag_name").getAsString(),
@@ -52,7 +52,7 @@ public class GitHubReleaseChecker implements UpdateChecker {
     }
 
     private HttpsURLConnection getConnection() throws IOException {
-        HttpsURLConnection connection = (HttpsURLConnection) (new URL(this.URL).openConnection());
+        var connection = (HttpsURLConnection) (new URL(this.URL).openConnection());
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", ACCEPT);
         connection.setRequestProperty("User-Agent", String.format("%s - %s ( %s )", JBukkitLib.NAME, JBukkitLib.VERSION, JBukkitLib.URL));
