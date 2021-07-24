@@ -14,7 +14,7 @@ Add Maven dependency
             <url>https://himajyun.github.io/mvn-repo/</url>
         </repository>
     </repositories>
-    
+
     <dependencies>
         <dependency>
             <groupId>jp.jyn</groupId>
@@ -32,9 +32,10 @@ It is recommended to "relocation" to prevent conflicts with different versions i
 <build>
     <plugins>
         <plugin>
+            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-shade-plugin</artifactId>
-            <version>3.2.4</version>
+            <version>3.3.0</version>
             <executions>
                 <execution>
                     <phase>package</phase>
@@ -65,7 +66,7 @@ It is recommended to "relocation" to prevent conflicts with different versions i
 
 |Version|Bukkit|Java|
 |:------|:-----|:---|
-|2.0.0|1.17-R0.1-SNAPSHOT|16|
+|2.0.0|1.17.1-R0.1-SNAPSHOT|16|
 |1.8.0|1.16.4-R0.1-SNAPSHOT|8|
 |1.7.0|1.16.4-R0.1-SNAPSHOT|8|
 |1.6.0|1.16.4-R0.1-SNAPSHOT|8|
