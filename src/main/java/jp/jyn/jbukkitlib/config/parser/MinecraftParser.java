@@ -30,18 +30,18 @@ public class MinecraftParser {
      * <ul>
      *     <li>aaa{aaa}aaa   -&gt; [String:aaa] [Variable:aaa] [String:aaa]   (Variable enclosed by "{ }")</li>
      *     <li>aaa{a{a}a}aaa -&gt; [String:aaa] [Variable:a{a}a] [String:aaa] (Variables can be nest)</li>
-     *     <li>aaa{aaa&amp;}a}aaa -&gt; [String:aaa] [Variable:aa}a] [String:aaa]  ("}" escaped by "a&amp;")</li>
-     *     <li>aaa{aa&amp;{aa}aaa -&gt; [String:aaa] [Variable:a{aa] [String:aaa]  ("{" escaped by "a&amp;")</li>
-     *     <li>aaa{aaaa&amp;a&amp;}aaa -&gt; [String:aaa] [Variable:aaaa&amp;] [String:aaa]  ("a&amp;" escaped by "a&amp;")</li>
+     *     <li>aaa{aa&amp;}a}aaa -&gt; [String:aaa] [Variable:aa}a] [String:aaa]  ("}" escaped by "&amp;")</li>
+     *     <li>aaa{a&amp;{aa}aaa -&gt; [String:aaa] [Variable:a{aa] [String:aaa]  ("{" escaped by "&amp;")</li>
+     *     <li>aaa{aaa&amp;&amp;}aaa -&gt; [String:aaa] [Variable:aaa&amp;] [String:aaa]  ("&amp;" escaped by "&amp;")</li>
      *     <li>aaa{ aaa }aaa -&gt; [String:aaa] [Variable:aaa] [String:aaa]   (leading and trailing whitespace trimmed)</li>
      *     <li>aaa{a a a}aaa -&gt; [String:aaa] [Variable:a a a] [String:aaa] (trim only for leading and trailing)</li>
-     *     <li>aaaa&amp;aaaaaa -&gt; [String:aaa] [MC_COLOR:a] [String:aaaaa] (Minecraft color code uses "a&amp;")</li>
-     *     <li>aaaa&amp;Aaaaaa -&gt; [String:aaa] [MC_COLOR:a] [String:aaaaa] (Uppercase color code convert to lowercase)</li>
+     *     <li>aaa&amp;aaaaaa -&gt; [String:aaa] [MC_COLOR:a] [String:aaaaa] (Minecraft color code uses "&amp;")</li>
+     *     <li>aaa&amp;Aaaaaa -&gt; [String:aaa] [MC_COLOR:a] [String:aaaaa] (Uppercase color code convert to lowercase)</li>
      *     <li>aaa#aaaaaa -&gt; [String:aaa] [HEX_COLOR:aaaaaa]              (Web color code uses "#")</li>
      *     <li>aaa#aaazzz -&gt; [String:aaa] [HEX_COLOR:aaaaaa] [String:zzz] (3-digit color code convert to 6-digit)</li>
      *     <li>aaa#AAAAAA -&gt; [String:aaa] [HEX_COLOR:aaaaaa]              (Uppercase color code convert to lowercase)</li>
-     *     <li>a&amp;{aa&amp;}a&amp;#aaaa&amp;a&amp;a -&gt; [String:{a}#aaaa&amp;a]     ("{", "}", "#" or "a&amp;" escaped by "a&amp;")</li>
-     *     <li>a&amp;/a&amp;$a&amp;%a&amp;|a&amp;!a&amp; -&gt; [String:a&amp;/a&amp;$a&amp;%a&amp;|a&amp;!a&amp;] (escape only for "{", "}", "#" or "a&amp;")</li>
+     *     <li>&amp;{a&amp;}&amp;#aaa&amp;&amp;a -&gt; [String:{a}#aaa&amp;a]     ("{", "}", "#" or "&amp;" escaped by "&amp;")</li>
+     *     <li>&amp;/&amp;$&amp;%&amp;|&amp;!&amp; -&gt; [String:&amp;/&amp;$&amp;%&amp;|&amp;!&amp;] (escape only for "{", "}", "#" or "&amp;")</li>
      *     <li>https://example.com/ http://example.com/ -&gt; [URL:https://example.com/] [String: ] [URL:http://example.com/]
      *         (URLs start with "http://" or "https://" and end at the end of a line or blank)</li>
      *     <li>https://example.com/?aa&amp;aaa#fff aaa       -&gt; [URL:https://example.com/?aa&amp;aaa#fff] [String: aaa]
@@ -53,9 +53,9 @@ public class MinecraftParser {
      * @return parsed value
      */
     public static List<Node> parse(String str) {
-        MinecraftParser p = new MinecraftParser();
+        var p = new MinecraftParser();
 
-        for (Map.Entry<Boolean, String> entry : split(str)) {
+        for (var entry : split(str)) {
             if (entry.getKey()) {
                 p.nodes.add(new Node(Type.URL, entry.getValue()));
                 continue;
@@ -196,10 +196,7 @@ public class MinecraftParser {
 
         char c = str.charAt(pos + 1);
         switch (c) { // escape
-            case '{':
-            case '}':
-            case '&':
-            case '#':
+            case '{', '}', '&', '#':
                 addString(String.valueOf(c));
                 this.cursor = pos + 2;
                 return;
@@ -326,12 +323,7 @@ public class MinecraftParser {
 
             if (escape) {
                 switch (c) {
-                    case '"':
-                    case '\'':
-                    case '&':
-                    case ',':
-                    case '(':
-                    case ')': // &" & &, &(, &) -> " & , ( )
+                    case '"', '\'', '&', ',', '(', ')': // &" & &, &(, &) -> " & , ( )
                         buf.append(c);
                         break;
                     default: // &a -> &a
@@ -347,8 +339,7 @@ public class MinecraftParser {
                     case '&':
                         escape = true;
                         break;
-                    case '"':
-                    case '\'':
+                    case '"', '\'':
                         if (quote == c) {
                             quote = '\0';
                             break;
@@ -361,8 +352,7 @@ public class MinecraftParser {
             }
 
             switch (c) {
-                case '"':
-                case '\'':
+                case '"', '\'':
                     quote = c;
                     continue;
                 case '&':

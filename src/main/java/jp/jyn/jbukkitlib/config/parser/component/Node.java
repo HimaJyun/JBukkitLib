@@ -5,7 +5,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -114,7 +113,7 @@ abstract class Node {
             super(component);
             this.name = name;
             // 起動中はずっと使いまわすのでunmodifiableに詰め直す
-            this.args = Collections.unmodifiableList(Arrays.asList(args.toArray(new String[0])));
+            this.args = List.of(args.toArray(new String[0]));
         }
 
         @Override
@@ -162,7 +161,7 @@ abstract class Node {
 
     @PackagePrivate
     static ComponentParser build(Collection<Node> nodes) {
-        for (Node node : nodes) {
+        for (var node : nodes) {
             if (!(node instanceof Node.TextNode)) {
                 return new Simple(nodes);
             }

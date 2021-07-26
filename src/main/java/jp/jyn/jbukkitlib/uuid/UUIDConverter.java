@@ -8,7 +8,6 @@ import com.google.gson.JsonObject;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,12 +47,12 @@ public class UUIDConverter {
 
         @Override
         public Optional<String> call() throws Exception {
-            HttpsURLConnection connection = getConnection();
+            var connection = getConnection();
             if (connection.getResponseCode() != 200) {
                 return Optional.empty();
             }
 
-            try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
+            try (var reader = new InputStreamReader(connection.getInputStream())) {
                 JsonArray array = gson.fromJson(reader, JsonArray.class);
                 JsonObject json = array.get(array.size() - 1).getAsJsonObject();
                 return Optional.ofNullable(json.get("name").getAsString());
@@ -63,7 +62,7 @@ public class UUIDConverter {
         private HttpsURLConnection getConnection() throws IOException {
             final String API_URL = "https://api.mojang.com/user/profiles/" + uuid.toString().replace("-", "") + "/names";
 
-            HttpsURLConnection connection = (HttpsURLConnection) (new URL(API_URL).openConnection());
+            var connection = (HttpsURLConnection) (new URL(API_URL).openConnection());
             connection.setRequestMethod("GET");
             connection.setUseCaches(false);
             connection.setInstanceFollowRedirects(true);
@@ -91,8 +90,8 @@ public class UUIDConverter {
 
         @Override
         public Optional<Map.Entry<String, UUID>> call() throws Exception {
-            final MultipleUUIDGetter getter = new MultipleUUIDGetter(name);
-            for (Map.Entry<String, UUID> entry : getter.call().entrySet()) {
+            final var getter = new MultipleUUIDGetter(name);
+            for (var entry : getter.call().entrySet()) {
                 return Optional.of(entry);
             }
             return Optional.empty();
@@ -137,7 +136,7 @@ public class UUIDConverter {
                     continue;
                 }
 
-                try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
+                try (var reader = new InputStreamReader(connection.getInputStream())) {
                     JsonArray array = gson.fromJson(reader, JsonArray.class);
                     for (JsonElement obj : array) {
                         JsonObject json = obj.getAsJsonObject();
@@ -153,14 +152,14 @@ public class UUIDConverter {
         }
 
         private void requestBody(HttpsURLConnection connection, String body) throws IOException {
-            try (OutputStream stream = connection.getOutputStream()) {
+            try (var stream = connection.getOutputStream()) {
                 stream.write(body.getBytes());
                 stream.flush();
             }
         }
 
         private HttpsURLConnection getConnection() throws IOException {
-            HttpsURLConnection connection = (HttpsURLConnection) (new URL(API_URL).openConnection());
+            var connection = (HttpsURLConnection) (new URL(API_URL).openConnection());
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setUseCaches(false);

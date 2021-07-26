@@ -98,10 +98,10 @@ abstract class Node {
         // string only
         if (nodes.size() == 0) {
             return new RawParser("");
-        } else if (nodes.size() == 1 && (nodes.get(0) instanceof StringNode)) {
+        } else if (nodes.size() == 1 && (nodes.get(0) instanceof StringNode n)) {
             StringBuilder sb = StringParser.LOCAL_BUILDER.get(); // ちょっと失敬
             sb.setLength(0);
-            nodes.get(0).apply(sb, TemplateVariable.EMPTY_VARIABLE);
+            n.apply(sb, TemplateVariable.EMPTY_VARIABLE);
             return new RawParser(sb.toString());
         }
 

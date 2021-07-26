@@ -1,7 +1,5 @@
 package jp.jyn.jbukkitlib.config.parser;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -18,20 +16,16 @@ import java.util.concurrent.TimeUnit;
  * </ul>
  */
 public class TimeParser {
-    private final static Map<Character, TimeUnit> UNIT_TABLE;
-
-    static {
-        Map<Character, TimeUnit> m = new HashMap<>();
-        m.put('d', TimeUnit.DAYS);
-        m.put('D', TimeUnit.DAYS);
-        m.put('h', TimeUnit.HOURS);
-        m.put('H', TimeUnit.HOURS);
-        m.put('m', TimeUnit.MINUTES);
-        m.put('M', TimeUnit.MINUTES);
-        m.put('s', TimeUnit.SECONDS);
-        m.put('S', TimeUnit.SECONDS);
-        UNIT_TABLE = Collections.unmodifiableMap(m);
-    }
+    private final static Map<Character, TimeUnit> UNIT_TABLE = Map.of(
+        'd', TimeUnit.DAYS,
+        'D', TimeUnit.DAYS,
+        'h', TimeUnit.HOURS,
+        'H', TimeUnit.HOURS,
+        'm', TimeUnit.MINUTES,
+        'M', TimeUnit.MINUTES,
+        's', TimeUnit.SECONDS,
+        'S', TimeUnit.SECONDS
+    );
 
     /**
      * Parses the time represented by a string.

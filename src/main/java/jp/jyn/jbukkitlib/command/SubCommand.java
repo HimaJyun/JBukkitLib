@@ -31,8 +31,7 @@ public abstract class SubCommand implements TabExecutor {
     private final int minimumArgs;
 
     protected SubCommand() {
-        Class clazz = this.getClass();
-        CommandMode mode = (CommandMode) clazz.getAnnotation(CommandMode.class);
+        CommandMode mode = this.getClass().getAnnotation(CommandMode.class);
         if (mode == null) {
             this.permission = null;
             this.isPlayerOnly = false;

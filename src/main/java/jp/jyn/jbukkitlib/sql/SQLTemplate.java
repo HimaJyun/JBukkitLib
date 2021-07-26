@@ -33,11 +33,11 @@ public abstract class SQLTemplate {
     protected <T> T selectInsert(String select, PreparedParameter selectParameter,
                                  String insert, PreparedParameter insertParameter,
                                  ResultMapper<T> mapper) throws RuntimeSQLException {
-        try (Connection connection = pool.getConnection()) {
+        try (var connection = pool.getConnection()) {
             connection.setAutoCommit(false);
-            try (PreparedStatement selectStatement = connection.prepareStatement(select)) {
+            try (var selectStatement = connection.prepareStatement(select)) {
                 selectParameter.set(selectStatement);
-                try (ResultSet result = selectStatement.executeQuery()) {
+                try (var result = selectStatement.executeQuery()) {
                     T obj = mapper.map(result);
                     if (obj != null) { // ok
                         return obj;
@@ -45,13 +45,13 @@ public abstract class SQLTemplate {
                 }
 
                 // insert
-                try (PreparedStatement insertStatement = connection.prepareStatement(insert)) {
+                try (var insertStatement = connection.prepareStatement(insert)) {
                     insertParameter.set(insertStatement);
                     insertStatement.executeUpdate();
                 }
 
                 // SELECT again.
-                try (ResultSet result = selectStatement.executeQuery()) {
+                try (var result = selectStatement.executeQuery()) {
                     T obj = mapper.map(result);
                     if (obj != null) { // ok
                         return obj;
@@ -104,11 +104,11 @@ public abstract class SQLTemplate {
      */
     protected int upsert(String update, PreparedParameter updateParameter,
                          String insert, PreparedParameter insertParameter) throws RuntimeSQLException {
-        try (Connection connection = pool.getConnection()) {
+        try (var connection = pool.getConnection()) {
             connection.setAutoCommit(false);
             try {
                 // update
-                try (PreparedStatement statement = connection.prepareStatement(update)) {
+                try (var statement = connection.prepareStatement(update)) {
                     updateParameter.set(statement);
                     int result = statement.executeUpdate();
                     if (result != 0) { // ok
@@ -117,7 +117,7 @@ public abstract class SQLTemplate {
                 }
 
                 // no update -> insert
-                try (PreparedStatement statement = connection.prepareStatement(insert)) {
+                try (var statement = connection.prepareStatement(insert)) {
                     insertParameter.set(statement);
                     int result = statement.executeUpdate();
                     if (result != 0) { // ok
@@ -150,10 +150,10 @@ public abstract class SQLTemplate {
      * @throws RuntimeSQLException Wrapped {@link SQLException}
      */
     protected <T> T select(String select, PreparedParameter parameter, ResultMapper<T> mapper) throws RuntimeSQLException {
-        try (Connection connection = pool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(select)) {
+        try (var connection = pool.getConnection();
+             var statement = connection.prepareStatement(select)) {
             parameter.set(statement);
-            try (ResultSet r = statement.executeQuery()) {
+            try (var r = statement.executeQuery()) {
                 return mapper.map(r);
             }
         } catch (SQLException e) {
@@ -170,8 +170,8 @@ public abstract class SQLTemplate {
      * @throws RuntimeSQLException Wrapped {@link SQLException}
      */
     protected int executeUpdate(String sql, PreparedParameter parameter) throws RuntimeSQLException {
-        try (Connection connection = pool.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (var connection = pool.getConnection();
+             var statement = connection.prepareStatement(sql)) {
             parameter.set(statement);
             return statement.executeUpdate();
         } catch (SQLException e) {

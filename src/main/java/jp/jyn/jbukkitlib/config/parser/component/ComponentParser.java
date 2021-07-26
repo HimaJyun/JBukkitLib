@@ -188,7 +188,7 @@ public interface ComponentParser {
 
         List<Node> nodes = new ArrayList<>();
         TextComponent component = new TextComponent();
-        for (MinecraftParser.Node node : MinecraftParser.parse(str)) {
+        for (var node : MinecraftParser.parse(str)) {
             switch (node.type) {
                 case HEX_COLOR:
                     // &k#aaa みたいにすると前の&kは消されてしまうが、Spigotのコードがそうなっているのでここではその挙動を真似る

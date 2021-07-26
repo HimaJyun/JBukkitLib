@@ -30,7 +30,7 @@ public class PersistentDataUtils {
     /**
      * Store UUID as int array
      */
-    public static final PersistentDataType<int[], UUID> UUID = new PersistentDataType<int[], UUID>() {
+    public static final PersistentDataType<int[], UUID> UUID = new PersistentDataType<>() {
         @Override
         public Class<int[]> getPrimitiveType() {
             return int[].class;
@@ -64,7 +64,7 @@ public class PersistentDataUtils {
     /**
      * Store boolean as byte
      */
-    public final static PersistentDataType<Byte, Boolean> BOOLEAN = new PersistentDataType<Byte, Boolean>() {
+    public final static PersistentDataType<Byte, Boolean> BOOLEAN = new PersistentDataType<>() {
         @Override
         public Class<Byte> getPrimitiveType() {
             return Byte.class;

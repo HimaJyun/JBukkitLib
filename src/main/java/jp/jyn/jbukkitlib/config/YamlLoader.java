@@ -16,8 +16,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +28,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -112,6 +113,156 @@ public class YamlLoader {
             YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8)));
     }
 
+    // region one-shot loader
+
+    /**
+     * Load Yaml file.<br>
+     * Hint: This method is loading default value from plugin jar and write out if file not exists.
+     *
+     * @param plugin Plugin
+     * @param file   file name.
+     * @return Loaded Yaml configuration.
+     */
+    public static FileConfiguration load(Plugin plugin, String file) {
+        var l = new YamlLoader(plugin, file);
+        l.saveDefaultConfig();
+        return l.getConfig();
+    }
+
+    /**
+     * Load Yaml file.<br>
+     * Hint: This method doesn't load the yml file from plugin jar. In such a case, use {@link YamlLoader#load(Plugin, String)}.
+     *
+     * @param file file
+     * @return Loaded Yaml configuration. empty configuration if file not exists.
+     */
+    public static FileConfiguration load(File file) {
+        return YamlConfiguration.loadConfiguration(file);
+    }
+
+    /**
+     * Load Yaml file.<br>
+     * Hint: This method doesn't load the yml file from plugin jar. In such a case, use {@link YamlLoader#load(Plugin, String)}.
+     *
+     * @param path file path
+     * @return Loaded Yaml configuration. empty configuration if file not exists.
+     */
+    public static FileConfiguration load(Path path) {
+        return load(path.toFile());
+    }
+
+    /**
+     * Save configuration.
+     *
+     * @param config configuration
+     * @param file   file
+     */
+    public static void save(FileConfiguration config, File file) {
+        if (config == null) {
+            return;
+        }
+
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Save configuration.<br>
+     * Use relative path from {@link Plugin#getDataFolder()}.
+     *
+     * @param config configuration
+     * @param plugin Plugin
+     * @param file   file name
+     */
+    public static void save(FileConfiguration config, Plugin plugin, String file) {
+        save(config, new File(plugin.getDataFolder(), file));
+    }
+
+    /**
+     * Save configuration.
+     *
+     * @param config configuration
+     * @param path   file path
+     */
+    public static void save(FileConfiguration config, Path path) {
+        save(config, path.toFile());
+    }
+    // endregion
+
+    // null -> default
+    // String -> Singleton string
+    // Empty array -> Empty list
+    // String array -> String list
+    private static <T> List<T> getStrings(ConfigurationSection config, String path, List<T> def, Function<Object, T> mapper, boolean ignoreDefault) {
+        var v = ignoreDefault ? config.get(path, null) : config.get(path);
+        if (v instanceof List l) {
+            if (l.isEmpty()) {
+                return Collections.emptyList();
+            }
+            var r = new ArrayList<T>(l.size());
+            for (Object o : l) {
+                r.add(mapper.apply(o));
+            }
+            return r;
+        }
+
+        var t = mapper.apply(v);
+        return t == null ? def : Collections.singletonList(t);
+    }
+
+    /**
+     * get String or String list
+     *
+     * @param config ConfigurationSection
+     * @param path   Path of the Object to get.
+     * @param def    The default value to return if the path is not found.
+     * @param mapper Object to T mapper
+     * @param <T>    Type
+     * @return null if not exist.
+     */
+    public static <T> List<T> getStrings(ConfigurationSection config, String path, List<T> def, Function<Object, T> mapper) {
+        return getStrings(config, path, def, mapper, true);
+    }
+
+    /**
+     * get String or String list
+     *
+     * @param config ConfigurationSection
+     * @param path   Path of the String to get.
+     * @param def    The default value to return if the path is not found.
+     * @return null if not exist.
+     */
+    public static List<String> getStrings(ConfigurationSection config, String path, List<String> def) {
+        return getStrings(config, path, def, o -> (o != null ? o.toString() : null));
+    }
+
+    /**
+     * get String or String list
+     *
+     * @param config ConfigurationSection
+     * @param path   Path of the Object to get.
+     * @param mapper Object to T mapper
+     * @param <T>    Type
+     * @return null if not exist.
+     */
+    public static <T> List<T> getStrings(ConfigurationSection config, String path, Function<Object, T> mapper) {
+        return getStrings(config, path, null, mapper, false);
+    }
+
+    /**
+     * get String or String list
+     *
+     * @param config ConfigurationSection
+     * @param path   Path of the String to get.
+     * @return null if not exist.
+     */
+    public static List<String> getStrings(ConfigurationSection config, String path) {
+        return getStrings(config, path, o -> (o != null ? o.toString() : null));
+    }
+
     /**
      * Iterates the child elements of the specified ConfigurationSection.
      *
@@ -191,10 +342,10 @@ public class YamlLoader {
         String name = src + "/";
         try {
             String path = plugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-            JarFile jar = new JarFile(URLDecoder.decode(path.replace("+", "%2b"), "UTF-8"));
+            var jar = new JarFile(URLDecoder.decode(path.replace("+", "%2b"), StandardCharsets.UTF_8));
             Files.createDirectories(dir);
-            for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements(); ) {
-                JarEntry e = entries.nextElement();
+            for (var entries = jar.entries(); entries.hasMoreElements(); ) {
+                var e = entries.nextElement();
                 if (e.isDirectory() || !e.getName().startsWith(name)) {
                     continue;
                 }
@@ -205,7 +356,7 @@ public class YamlLoader {
                     continue;
                 }
 
-                try (BufferedInputStream in = new BufferedInputStream(jar.getInputStream(e))) {
+                try (var in = new BufferedInputStream(jar.getInputStream(e))) {
                     Files.copy(in, dst, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
@@ -269,8 +420,8 @@ public class YamlLoader {
     }
 
     /**
-     * Finds files with a yml extension in the specified directory.
-     * Note: Does not include yaml.
+     * Finds files with a .yml extension in the specified directory.
+     * Note: Does not include .yaml.
      *
      * @param dir      target directory
      * @param maxDepth max depth
@@ -285,8 +436,8 @@ public class YamlLoader {
     }
 
     /**
-     * Finds files with a yml extension in the specified directory.
-     * Note: Does not include yaml.
+     * Finds files with a .yml extension in the specified directory.
+     * Note: Does not include .yaml.
      *
      * @param dir target directory
      * @return List of files found.
@@ -296,8 +447,8 @@ public class YamlLoader {
     }
 
     /**
-     * Finds files with a yml extension in the specified directory.
-     * Note: Does not include yaml.
+     * Finds files with a .yml extension in the specified directory.
+     * Note: Does not include .yaml.
      *
      * @param plugin   plugin
      * @param dir      directory name
@@ -309,8 +460,8 @@ public class YamlLoader {
     }
 
     /**
-     * Finds files with a yml extension in the specified directory.
-     * Note: Does not include yaml.
+     * Finds files with a .yml extension in the specified directory.
+     * Note: Does not include .yaml.
      *
      * @param plugin plugin
      * @param dir    directory name
@@ -318,5 +469,116 @@ public class YamlLoader {
      */
     public static List<Path> findYaml(Plugin plugin, String dir) {
         return findYaml(plugin.getDataFolder().toPath().resolve(dir), 1);
+    }
+
+
+    /**
+     * Remove config value
+     *
+     * @param config config
+     * @param key    key
+     */
+    public static void remove(ConfigurationSection config, String key) {
+        config.set(key, null);
+    }
+
+    /**
+     * Rename config value
+     *
+     * @param config config
+     * @param from   old key
+     * @param to     new key
+     */
+    public static void rename(ConfigurationSection config, String from, String to) {
+        Object old = config.get(from);
+        config.set(from, null);
+        config.set(to, old);
+    }
+
+    /**
+     * File move
+     *
+     * @param src source
+     * @param dst destination
+     */
+    public static void move(Path src, Path dst) {
+        try {
+            Files.move(src, dst, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * File move, Use relative path from {@link Plugin#getDataFolder()}.
+     *
+     * @param plugin plugin
+     * @param src    source path, relative path from plugin data folder.
+     * @param dst    destination path, relative path from plugin data folder.
+     */
+    public static void move(Plugin plugin, String src, String dst) {
+        Path base = plugin.getDataFolder().toPath();
+        move(base.resolve(src), base.resolve(dst));
+    }
+
+    /**
+     * File copy
+     *
+     * @param src source
+     * @param dst destination
+     */
+    public static void copy(Path src, Path dst) {
+        try {
+            Files.copy(src, dst, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * File copy, Use relative path from {@link Plugin#getDataFolder()}.
+     *
+     * @param plugin plugin
+     * @param src    source path, relative path from plugin data folder.
+     * @param dst    destination path, relative path from plugin data folder.
+     */
+    public static void copy(Plugin plugin, String src, String dst) {
+        Path base = plugin.getDataFolder().toPath();
+        copy(base.resolve(src), base.resolve(dst));
+    }
+
+    /**
+     * File backup, Use relative path from {@link Plugin#getDataFolder()}.
+     *
+     * @param plugin plugin
+     * @param file   target file path, relative path from plugin data folder.
+     * @param suffix backup file suffix
+     */
+    public static void backup(Plugin plugin, String file, String suffix) {
+        Path base = plugin.getDataFolder().toPath();
+        copy(base.resolve(file), base.resolve(file + "." + suffix));
+    }
+
+    /**
+     * File backup, Use relative path from {@link Plugin#getDataFolder()}.
+     *
+     * @param plugin plugin
+     * @param file   target file path, relative path from plugin data folder.
+     * @param suffix backup file suffix
+     */
+    public static void backup(Plugin plugin, String file, int suffix) {
+        Path base = plugin.getDataFolder().toPath();
+        copy(base.resolve(file), base.resolve(file + "." + suffix));
+    }
+
+    /**
+     * File backup, Use relative path from {@link Plugin#getDataFolder()}.<br>
+     * Use time-based suffix.
+     *
+     * @param plugin plugin
+     * @param file   target file path, relative path from plugin data folder.
+     */
+    public static void backup(Plugin plugin, String file) {
+        copy(plugin, file, ZonedDateTime.now().format(DateTimeFormatter.ofPattern("uuuuMMddHHmmss")));
     }
 }
