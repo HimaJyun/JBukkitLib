@@ -47,12 +47,27 @@ public class SupplierVariable implements TemplateVariable {
     }
 
     @Override
+    public TemplateVariable put(String key, byte value) {
+        return put(key, () -> String.valueOf(value));
+    }
+
+    @Override
+    public TemplateVariable put(String key, short value) {
+        return put(key, () -> String.valueOf(value));
+    }
+
+    @Override
     public TemplateVariable put(String key, int value) {
         return put(key, () -> String.valueOf(value));
     }
 
     @Override
     public TemplateVariable put(String key, long value) {
+        return put(key, () -> String.valueOf(value));
+    }
+
+    @Override
+    public TemplateVariable put(String key, float value) {
         return put(key, () -> String.valueOf(value));
     }
 

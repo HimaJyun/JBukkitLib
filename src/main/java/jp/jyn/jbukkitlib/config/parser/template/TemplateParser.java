@@ -92,6 +92,28 @@ public interface TemplateParser {
      * @param value variable value
      * @return variable applied String
      */
+    default String apply(String key, byte value) {
+        return apply(StringVariable.init().put(key, value));
+    }
+
+    /**
+     * applying single variable.
+     *
+     * @param key   variable key
+     * @param value variable value
+     * @return variable applied String
+     */
+    default String apply(String key, short value) {
+        return apply(StringVariable.init().put(key, value));
+    }
+
+    /**
+     * applying single variable.
+     *
+     * @param key   variable key
+     * @param value variable value
+     * @return variable applied String
+     */
     default String apply(String key, int value) {
         return apply(StringVariable.init().put(key, value));
     }
@@ -104,6 +126,17 @@ public interface TemplateParser {
      * @return variable applied String
      */
     default String apply(String key, long value) {
+        return apply(StringVariable.init().put(key, value));
+    }
+
+    /**
+     * applying single variable.
+     *
+     * @param key   variable key
+     * @param value variable value
+     * @return variable applied String
+     */
+    default String apply(String key, float value) {
         return apply(StringVariable.init().put(key, value));
     }
 

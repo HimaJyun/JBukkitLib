@@ -20,25 +20,25 @@ public class ComponentVariable {
     public final static ComponentVariable EMPTY_VARIABLE = new ComponentVariable() {
         // 何もしないように細工しておく
         @Override
-        public ComponentVariable put(String key, Consumer<TextComponent> value) { return this; }
+        public ComponentVariable put(String key, Consumer<TextComponent> value) {return this;}
 
         @Override
-        public ComponentVariable put(String key, BiConsumer<TextComponent, List<String>> value) { return this; }
+        public ComponentVariable put(String key, BiConsumer<TextComponent, List<String>> value) {return this;}
 
         @Override
-        public ComponentVariable put(String... values) { return this; }
+        public ComponentVariable put(String... values) {return this;}
 
         @Override
-        public ComponentVariable clearVariable() { return this; }
+        public ComponentVariable clearVariable() {return this;}
 
         @Override
-        public ComponentVariable clearFunction() { return this; }
+        public ComponentVariable clearFunction() {return this;}
 
         @Override
-        public Consumer<TextComponent> getVariable(String key) { return null; }
+        public Consumer<TextComponent> getVariable(String key) {return null;}
 
         @Override
-        public BiConsumer<TextComponent, List<String>> getFunction(String key) { return null; }
+        public BiConsumer<TextComponent, List<String>> getFunction(String key) {return null;}
 
         @Override
         public String toString() {
@@ -194,6 +194,28 @@ public class ComponentVariable {
      * @param value variable value
      * @return for method chain
      */
+    public ComponentVariable put(String key, byte value) {
+        return put(key, c -> c.setText(String.valueOf(value)));
+    }
+
+    /**
+     * Put variable.
+     *
+     * @param key   variable name
+     * @param value variable value
+     * @return for method chain
+     */
+    public ComponentVariable put(String key, short value) {
+        return put(key, c -> c.setText(String.valueOf(value)));
+    }
+
+    /**
+     * Put variable.
+     *
+     * @param key   variable name
+     * @param value variable value
+     * @return for method chain
+     */
     public ComponentVariable put(String key, int value) {
         return put(key, c -> c.setText(String.valueOf(value)));
     }
@@ -206,6 +228,17 @@ public class ComponentVariable {
      * @return for method chain
      */
     public ComponentVariable put(String key, long value) {
+        return put(key, c -> c.setText(String.valueOf(value)));
+    }
+
+    /**
+     * Put variable.
+     *
+     * @param key   variable name
+     * @param value variable value
+     * @return for method chain
+     */
+    public ComponentVariable put(String key, float value) {
         return put(key, c -> c.setText(String.valueOf(value)));
     }
 

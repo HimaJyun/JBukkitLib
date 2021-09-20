@@ -219,37 +219,52 @@ abstract class Node {
         }
 
         @Override
-        public Component apply(ComponentVariable variable) { return component; }
+        public Component apply(ComponentVariable variable) {return component;}
 
         @Override
-        public Component apply() { return component; }
+        public Component apply(String key, Consumer<TextComponent> value) {return component;}
 
         @Override
-        public Component apply(String key, String value) { return component; }
+        public Component apply(String key, BiConsumer<TextComponent, List<String>> value) {return component;}
 
         @Override
-        public Component apply(String key, Object value) { return component; }
+        public Component apply() {return component;}
 
         @Override
-        public Component apply(String key, Supplier<String> value) { return component; }
+        public Component apply(String key, String value) {return component;}
 
         @Override
-        public Component apply(String... values) { return component; }
+        public Component apply(String key, Object value) {return component;}
 
         @Override
-        public Component apply(String key, int value) { return component; }
+        public Component apply(String key, Supplier<String> value) {return component;}
 
         @Override
-        public Component apply(String key, long value) { return component; }
+        public Component apply(String... values) {return component;}
 
         @Override
-        public Component apply(String key, double value) { return component; }
+        public Component apply(String key, byte value) {return component;}
 
         @Override
-        public Component apply(String key, char value) { return component; }
+        public Component apply(String key, short value) {return component;}
 
         @Override
-        public Component apply(String key, boolean value) { return component; }
+        public Component apply(String key, int value) {return component;}
+
+        @Override
+        public Component apply(String key, long value) {return component;}
+
+        @Override
+        public Component apply(String key, float value) {return component;}
+
+        @Override
+        public Component apply(String key, double value) {return component;}
+
+        @Override
+        public Component apply(String key, char value) {return component;}
+
+        @Override
+        public Component apply(String key, boolean value) {return component;}
 
         @Override
         public String toString() {

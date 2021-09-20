@@ -11,22 +11,22 @@ public interface TemplateVariable {
      */
     TemplateVariable EMPTY_VARIABLE = new TemplateVariable() {
         @Override
-        public TemplateVariable put(String key, String value) { return this; }
+        public TemplateVariable put(String key, String value) {return this;}
 
         @Override
-        public TemplateVariable put(String key, Supplier<String> value) { return this; }
+        public TemplateVariable put(String key, Supplier<String> value) {return this;}
 
         @Override
-        public TemplateVariable put(String key, Object value) { return this; }
+        public TemplateVariable put(String key, Object value) {return this;}
 
         @Override
-        public TemplateVariable put(String... values) { return this; }
+        public TemplateVariable put(String... values) {return this;}
 
         @Override
-        public TemplateVariable clear() { return this; }
+        public TemplateVariable clear() {return this;}
 
         @Override
-        public String get(String key) { return null; }
+        public String get(String key) {return null;}
     };
 
     /**
@@ -90,6 +90,28 @@ public interface TemplateVariable {
      * @param value variable value
      * @return for method chain
      */
+    default TemplateVariable put(String key, byte value) {
+        return this.put(key, String.valueOf(value));
+    }
+
+    /**
+     * Put variable.
+     *
+     * @param key   variable name
+     * @param value variable value
+     * @return for method chain
+     */
+    default TemplateVariable put(String key, short value) {
+        return this.put(key, String.valueOf(value));
+    }
+
+    /**
+     * Put variable.
+     *
+     * @param key   variable name
+     * @param value variable value
+     * @return for method chain
+     */
     default TemplateVariable put(String key, int value) {
         return this.put(key, String.valueOf(value));
     }
@@ -102,6 +124,17 @@ public interface TemplateVariable {
      * @return for method chain
      */
     default TemplateVariable put(String key, long value) {
+        return this.put(key, String.valueOf(value));
+    }
+
+    /**
+     * Put variable.
+     *
+     * @param key   variable name
+     * @param value variable value
+     * @return for method chain
+     */
+    default TemplateVariable put(String key, float value) {
         return this.put(key, String.valueOf(value));
     }
 

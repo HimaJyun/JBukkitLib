@@ -14,6 +14,72 @@ import java.util.logging.Logger;
  * variable applied component
  */
 public class Component implements Cloneable {
+    public final static Component NOOP = new Component(null) {
+        @Override
+        public Component actionbar(Player player) {return this;}
+
+        @Override
+        public Component actionbar(Iterable<Player> players) {return this;}
+
+        @Override
+        public Component actionbar(Player... players) {return this;}
+
+        @Override
+        public Component send(ChatMessageType position, Player player) {return this;}
+
+        @Override
+        public Component send(ChatMessageType position, Iterable<Player> players) {return this;}
+
+        @Override
+        public Component send(ChatMessageType position, Player... players) {return this;}
+
+        @Override
+        public Component send(CommandSender sender) {return this;}
+
+        @Override
+        public Component send(Iterable<CommandSender> senders) {return this;}
+
+        @Override
+        public Component send(CommandSender... senders) {return this;}
+
+        @Override
+        public Component broadcast(boolean console) {return this;}
+
+        @Override
+        public Component broadcast() {return this;}
+
+        @Override
+        public Component console() {return this;}
+
+        @Override
+        public Component log(Logger logger, Level level) {return this;}
+
+        @Override
+        public Component log(Logger logger) {return this;}
+
+        @Override
+        public String toPlaintext() {return "";}
+
+        @Override
+        public String toLegacyText() {return "";}
+
+        @Override
+        public TextComponent[] toTextComponent() {return new TextComponent[0];}
+
+        @Override
+        public String toString() {return "Component.NOOP{}";}
+
+        @Override
+        public boolean equals(Object obj) {return obj == this;}
+
+        @Override
+        public int hashCode() {return System.identityHashCode(this);}
+
+        @SuppressWarnings("MethodDoesntCallSuperMethod") // IF互換のため
+        @Override
+        public Component clone() {return this;}
+    };
+
     private final TextComponent[] components;
 
     public Component(TextComponent[] components) {
@@ -53,6 +119,46 @@ public class Component implements Cloneable {
     public Component actionbar(Player... players) {
         for (var player : players) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
+        }
+        return this;
+    }
+
+    /**
+     * Sending message.
+     *
+     * @param position the screen position
+     * @param player   target player
+     * @return for method chain
+     */
+    public Component send(ChatMessageType position, Player player) {
+        player.spigot().sendMessage(position, components);
+        return this;
+    }
+
+    /**
+     * Sending message.
+     *
+     * @param position the screen position
+     * @param players  target players
+     * @return for method chain
+     */
+    public Component send(ChatMessageType position, Iterable<Player> players) {
+        for (var player : players) {
+            player.spigot().sendMessage(position, components);
+        }
+        return this;
+    }
+
+    /**
+     * Sending message.
+     *
+     * @param position the screen position
+     * @param players  target players
+     * @return for method chain
+     */
+    public Component send(ChatMessageType position, Player... players) {
+        for (var player : players) {
+            player.spigot().sendMessage(position, components);
         }
         return this;
     }
