@@ -177,12 +177,12 @@ abstract class Node {
         }
 
         @Override
-        public Component apply(ComponentVariable variable) {
+        public ArrayComponent apply(ComponentVariable variable) {
             TextComponent[] components = new TextComponent[node.length];
             for (int i = 0; i < node.length; i++) {
                 components[i] = node[i].apply(variable);
             }
-            return new Component(components);
+            return new ArrayComponent(components);
         }
 
         @Override
@@ -215,41 +215,47 @@ abstract class Node {
             for (Node n : node) {
                 components[i++] = n.apply(ComponentVariable.EMPTY_VARIABLE);
             }
-            this.component = new Component(components);
+            this.component = new ArrayComponent(components);
         }
 
         @Override
-        public Component apply(ComponentVariable variable) { return component; }
+        public Component apply(ComponentVariable variable) {return component;}
 
         @Override
-        public Component apply() { return component; }
+        public Component apply(String key, Consumer<TextComponent> value) {return component;}
 
         @Override
-        public Component apply(String key, String value) { return component; }
+        public Component apply(String key, BiConsumer<TextComponent, List<String>> value) {return component;}
 
         @Override
-        public Component apply(String key, Object value) { return component; }
+        public Component apply() {return component;}
 
         @Override
-        public Component apply(String key, Supplier<String> value) { return component; }
+        public Component apply(String key, String value) {return component;}
 
         @Override
-        public Component apply(String... values) { return component; }
+        public Component apply(String key, Object value) {return component;}
 
         @Override
-        public Component apply(String key, int value) { return component; }
+        public Component apply(String key, Supplier<String> value) {return component;}
 
         @Override
-        public Component apply(String key, long value) { return component; }
+        public Component apply(String... values) {return component;}
 
         @Override
-        public Component apply(String key, double value) { return component; }
+        public Component apply(String key, int value) {return component;}
 
         @Override
-        public Component apply(String key, char value) { return component; }
+        public Component apply(String key, long value) {return component;}
 
         @Override
-        public Component apply(String key, boolean value) { return component; }
+        public Component apply(String key, double value) {return component;}
+
+        @Override
+        public Component apply(String key, char value) {return component;}
+
+        @Override
+        public Component apply(String key, boolean value) {return component;}
 
         @Override
         public String toString() {

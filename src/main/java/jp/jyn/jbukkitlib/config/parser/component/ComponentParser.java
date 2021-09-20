@@ -25,6 +25,56 @@ import java.util.function.Supplier;
  */
 @FunctionalInterface
 public interface ComponentParser {
+    ComponentParser NOOP = new ComponentParser() {
+        @Override
+        public Component apply(ComponentVariable variable) {return Component.NOOP;}
+
+        @Override
+        public Component apply() {return Component.NOOP;}
+
+        @Override
+        public Component apply(String key, Consumer<TextComponent> value) {return Component.NOOP;}
+
+        @Override
+        public Component apply(String key, BiConsumer<TextComponent, List<String>> value) {return Component.NOOP;}
+
+        @Override
+        public Component apply(String key, String value) {return Component.NOOP;}
+
+        @Override
+        public Component apply(String key, Object value) {return Component.NOOP;}
+
+        @Override
+        public Component apply(String key, Supplier<String> value) {return Component.NOOP;}
+
+        @Override
+        public Component apply(String... values) {return Component.NOOP;}
+
+        @Override
+        public Component apply(String key, int value) {return Component.NOOP;}
+
+        @Override
+        public Component apply(String key, long value) {return Component.NOOP;}
+
+        @Override
+        public Component apply(String key, double value) {return Component.NOOP;}
+
+        @Override
+        public Component apply(String key, char value) {return Component.NOOP;}
+
+        @Override
+        public Component apply(String key, boolean value) {return Component.NOOP;}
+
+        @Override
+        public String toString() {return "ComponentParser.NOOP{}";}
+
+        @Override
+        public boolean equals(Object obj) {return obj == this;}
+
+        @Override
+        public int hashCode() {return System.identityHashCode(this);}
+    };
+
     /**
      * applying variable.
      *
