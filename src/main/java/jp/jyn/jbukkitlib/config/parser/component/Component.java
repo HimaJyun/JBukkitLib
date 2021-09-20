@@ -2,81 +2,23 @@ package jp.jyn.jbukkitlib.config.parser.component;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * variable applied component
  */
-public interface Component extends Cloneable {
-    Component NOOP = new Component() {
-        @Override
-        public Component actionbar(Player player) {return this;}
+public class Component implements Cloneable {
+    private final TextComponent[] components;
 
-        @Override
-        public Component actionbar(Iterable<Player> players) {return this;}
-
-        @Override
-        public Component actionbar(Player... players) {return this;}
-
-        @Override
-        public Component send(ChatMessageType position, Player player) {return this;}
-
-        @Override
-        public Component send(ChatMessageType position, Iterable<Player> players) {return this;}
-
-        @Override
-        public Component send(ChatMessageType position, Player... players) {return this;}
-
-        @Override
-        public Component send(CommandSender sender) {return this;}
-
-        @Override
-        public Component send(Iterable<CommandSender> senders) {return this;}
-
-        @Override
-        public Component send(CommandSender... senders) {return this;}
-
-        @Override
-        public Component broadcast(boolean console) {return this;}
-
-        @Override
-        public Component broadcast() {return this;}
-
-        @Override
-        public Component console() {return this;}
-
-        @Override
-        public Component log(Logger logger, Level level) {return this;}
-
-        @Override
-        public Component log(Logger logger) {return this;}
-
-        @Override
-        public String toPlaintext() {return "";}
-
-        @Override
-        public String toLegacyText() {return "";}
-
-        @Override
-        public TextComponent[] toTextComponent() {return new TextComponent[0];}
-
-        @Override
-        public String toString() {return "Component.NOOP{}";}
-
-        @Override
-        public boolean equals(Object obj) {return obj == this;}
-
-        @Override
-        public int hashCode() {return System.identityHashCode(this);}
-
-        @SuppressWarnings("MethodDoesntCallSuperMethod") // IF互換のため
-        @Override
-        public Component clone() {return this;}
-    };
+    public Component(TextComponent[] components) {
+        this.components = components;
+    }
 
     /**
      * Sending actionbar.
@@ -84,20 +26,8 @@ public interface Component extends Cloneable {
      * @param player target player
      * @return for method chain
      */
-    default Component actionbar(Player player) {
-        return send(ChatMessageType.ACTION_BAR, player);
-    }
-
-    /**
-     * Sending actionbar.
-     *
-     * @param players target players
-     * @return for method chain
-     */
-    default Component actionbar(Iterable<Player> players) {
-        for (var player : players) {
-            actionbar(player);
-        }
+    public Component actionbar(Player player) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
         return this;
     }
 
@@ -107,46 +37,22 @@ public interface Component extends Cloneable {
      * @param players target players
      * @return for method chain
      */
-    default Component actionbar(Player... players) {
+    public Component actionbar(Iterable<Player> players) {
         for (var player : players) {
-            actionbar(player);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
         }
         return this;
     }
 
     /**
-     * Sending message.
+     * Sending actionbar.
      *
-     * @param position the screen position
-     * @param player   target player
+     * @param players target players
      * @return for method chain
      */
-    Component send(ChatMessageType position, Player player);
-
-    /**
-     * Sending message.
-     *
-     * @param position the screen position
-     * @param players  target players
-     * @return for method chain
-     */
-    default Component send(ChatMessageType position, Iterable<Player> players) {
+    public Component actionbar(Player... players) {
         for (var player : players) {
-            send(position, player);
-        }
-        return this;
-    }
-
-    /**
-     * Sending message.
-     *
-     * @param position the screen position
-     * @param players  target players
-     * @return for method chain
-     */
-    default Component send(ChatMessageType position, Player... players) {
-        for (var player : players) {
-            send(position, player);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
         }
         return this;
     }
@@ -157,7 +63,10 @@ public interface Component extends Cloneable {
      * @param sender target sender
      * @return for method chain
      */
-    Component send(CommandSender sender);
+    public Component send(CommandSender sender) {
+        sender.spigot().sendMessage(components);
+        return this;
+    }
 
     /**
      * Sending message.
@@ -165,9 +74,9 @@ public interface Component extends Cloneable {
      * @param senders target senders
      * @return for method chain
      */
-    default Component send(Iterable<CommandSender> senders) {
+    public Component send(Iterable<CommandSender> senders) {
         for (var sender : senders) {
-            send(sender);
+            sender.spigot().sendMessage(components);
         }
         return this;
     }
@@ -178,9 +87,9 @@ public interface Component extends Cloneable {
      * @param senders target senders
      * @return for method chain
      */
-    default Component send(CommandSender... senders) {
+    public Component send(CommandSender... senders) {
         for (var sender : senders) {
-            send(sender);
+            sender.spigot().sendMessage(components);
         }
         return this;
     }
@@ -191,15 +100,22 @@ public interface Component extends Cloneable {
      * @param console if true, it will be displayed on the console.
      * @return for method chain
      */
-    Component broadcast(boolean console);
+    public Component broadcast(boolean console) {
+        if (console) {
+            Bukkit.getConsoleSender().spigot().sendMessage(components);
+        }
+        Bukkit.spigot().broadcast(components);
+        return this;
+    }
 
     /**
      * Sending broadcast message.
      *
      * @return for method chain
      */
-    default Component broadcast() {
-        return broadcast(false);
+    public Component broadcast() {
+        Bukkit.spigot().broadcast(components);
+        return this;
     }
 
     /**
@@ -207,7 +123,10 @@ public interface Component extends Cloneable {
      *
      * @return for method chain
      */
-    Component console();
+    public Component console() {
+        Bukkit.getConsoleSender().spigot().sendMessage(components);
+        return this;
+    }
 
     /**
      * Logging at the specified log level.
@@ -216,7 +135,10 @@ public interface Component extends Cloneable {
      * @param level  log level
      * @return for method chain
      */
-    Component log(Logger logger, Level level);
+    public Component log(Logger logger, Level level) {
+        logger.log(level, this::toPlaintext);
+        return this;
+    }
 
     /**
      * Logging at the {@link Level#INFO} log level.
@@ -224,8 +146,9 @@ public interface Component extends Cloneable {
      * @param logger logger
      * @return for method chain
      */
-    default Component log(Logger logger) {
-        return log(logger, Level.INFO);
+    public Component log(Logger logger) {
+        logger.info(this::toPlaintext);
+        return this;
     }
 
     /**
@@ -236,7 +159,13 @@ public interface Component extends Cloneable {
      *
      * @return plain text
      */
-    String toPlaintext();
+    public String toPlaintext() {
+        StringBuilder sb = new StringBuilder();
+        for (TextComponent component : components) {
+            sb.append(component.toPlainText());
+        }
+        return sb.toString();
+    }
 
     /**
      * <p>Get text of this components.</p>
@@ -246,7 +175,13 @@ public interface Component extends Cloneable {
      *
      * @return legacy text
      */
-    String toLegacyText();
+    public String toLegacyText() {
+        StringBuilder sb = new StringBuilder();
+        for (TextComponent component : components) {
+            sb.append(component.toLegacyText());
+        }
+        return sb.toString();
+    }
 
     /**
      * <p>Gets an array of TextComponents.</p>
@@ -256,8 +191,14 @@ public interface Component extends Cloneable {
      *
      * @return TextComponent array
      */
-    TextComponent[] toTextComponent();
-
+    public TextComponent[] toTextComponent() {
+        // と～っても非効率だけどイミュータブルにするためにはこうするしかない (そのまま返すと変更できてしまう)
+        TextComponent[] c = new TextComponent[components.length];
+        for (int i = 0; i < components.length; i++) {
+            c[i] = components[i].duplicate();
+        }
+        return c;
+    }
 
     /**
      * <p>Returns a String representation of this object.</p>
@@ -267,5 +208,34 @@ public interface Component extends Cloneable {
      *
      * @return String representation
      */
-    String toString();
+    @Override
+    public String toString() {
+        return "Component{" + Arrays.toString(components) + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Component component = (Component) o;
+        return Arrays.equals(components, component.components);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(components);
+    }
+
+    @Override
+    public Component clone() {
+        try {
+            Component clone = (Component) super.clone();
+            for (int i = 0; i < this.components.length; i++) {
+                clone.components[i] = this.components[i].duplicate();
+            }
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
