@@ -14,6 +14,9 @@ import java.util.logging.Logger;
  * variable applied component
  */
 public class Component implements Cloneable {
+    /**
+     * NO-OP Component.
+     */
     public final static Component NOOP = new Component(null) {
         @Override
         public Component actionbar(Player player) {return this;}
@@ -23,6 +26,24 @@ public class Component implements Cloneable {
 
         @Override
         public Component actionbar(Player... players) {return this;}
+
+        @Override
+        public Component title(String subtitle, int fadeIn, int stay, int fadeOut, Player player) {return this;}
+
+        @Override
+        public Component title(String subtitle, int fadeIn, int stay, int fadeOut, Iterable<Player> players) {return this;}
+
+        @Override
+        public Component title(String subtitle, int fadeIn, int stay, int fadeOut, Player... players) {return this;}
+
+        @Override
+        public Component subtitle(String title, int fadeIn, int stay, int fadeOut, Player player) {return this;}
+
+        @Override
+        public Component subtitle(String title, int fadeIn, int stay, int fadeOut, Iterable<Player> players) {return this;}
+
+        @Override
+        public Component subtitle(String title, int fadeIn, int stay, int fadeOut, Player... players) {return this;}
 
         @Override
         public Component send(ChatMessageType position, Player player) {return this;}
@@ -81,6 +102,8 @@ public class Component implements Cloneable {
     };
 
     private final TextComponent[] components;
+    // オブジェクトの参照/代入はアトミック + toLegacyText()を複数回実行してしまうことは許容できるのでvolatile不要
+    private String legacyText;
 
     public Component(TextComponent[] components) {
         this.components = components;
@@ -119,6 +142,114 @@ public class Component implements Cloneable {
     public Component actionbar(Player... players) {
         for (var player : players) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, components);
+        }
+        return this;
+    }
+
+    /**
+     * Sending title.<br>
+     * See: {@link Player#sendTitle(String, String, int, int, int)}
+     *
+     * @param subtitle subtitle. if you need other Component, use {@link Component#toLegacyText()}.
+     * @param fadeIn   time in ticks for titles to fade in. Defaults to 10.
+     * @param stay     time in ticks for titles to stay. Defaults to 70.
+     * @param fadeOut  time in ticks for titles to fade out. Defaults to 20.
+     * @param player   target player.
+     * @return for method chain
+     */
+    public Component title(String subtitle, int fadeIn, int stay, int fadeOut, Player player) {
+        player.sendTitle(toLegacyText(), subtitle, fadeIn, stay, fadeOut);
+        return this;
+    }
+
+    /**
+     * Sending title.<br>
+     * See: {@link Player#sendTitle(String, String, int, int, int)}
+     *
+     * @param subtitle subtitle. if you need other Component, use {@link Component#toLegacyText()}.
+     * @param fadeIn   time in ticks for titles to fade in. Defaults to 10.
+     * @param stay     time in ticks for titles to stay. Defaults to 70.
+     * @param fadeOut  time in ticks for titles to fade out. Defaults to 20.
+     * @param players  target players.
+     * @return for method chain
+     */
+    public Component title(String subtitle, int fadeIn, int stay, int fadeOut, Iterable<Player> players) {
+        var title = toLegacyText();
+        for (Player player : players) {
+            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+        }
+        return this;
+    }
+
+    /**
+     * Sending title.<br>
+     * See: {@link Player#sendTitle(String, String, int, int, int)}
+     *
+     * @param subtitle subtitle. if you need other Component, use {@link Component#toLegacyText()}.
+     * @param fadeIn   time in ticks for titles to fade in. Defaults to 10.
+     * @param stay     time in ticks for titles to stay. Defaults to 70.
+     * @param fadeOut  time in ticks for titles to fade out. Defaults to 20.
+     * @param players  target players.
+     * @return for method chain
+     */
+    public Component title(String subtitle, int fadeIn, int stay, int fadeOut, Player... players) {
+        var title = toLegacyText();
+        for (Player player : players) {
+            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+        }
+        return this;
+    }
+
+    /**
+     * Sending subtitle.<br>
+     * See: {@link Player#sendTitle(String, String, int, int, int)}
+     *
+     * @param title   title. if you need other Component, use {@link Component#toLegacyText()}.
+     * @param fadeIn  time in ticks for titles to fade in. Defaults to 10.
+     * @param stay    time in ticks for titles to stay. Defaults to 70.
+     * @param fadeOut time in ticks for titles to fade out. Defaults to 20.
+     * @param player  target player.
+     * @return for method chain
+     */
+    public Component subtitle(String title, int fadeIn, int stay, int fadeOut, Player player) {
+        player.sendTitle(title, toLegacyText(), fadeIn, stay, fadeOut);
+        return this;
+    }
+
+    /**
+     * Sending subtitle.<br>
+     * See: {@link Player#sendTitle(String, String, int, int, int)}
+     *
+     * @param title   title. if you need other Component, use {@link Component#toLegacyText()}.
+     * @param fadeIn  time in ticks for titles to fade in. Defaults to 10.
+     * @param stay    time in ticks for titles to stay. Defaults to 70.
+     * @param fadeOut time in ticks for titles to fade out. Defaults to 20.
+     * @param players target players.
+     * @return for method chain
+     */
+    public Component subtitle(String title, int fadeIn, int stay, int fadeOut, Iterable<Player> players) {
+        var subtitle = toLegacyText();
+        for (Player player : players) {
+            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+        }
+        return this;
+    }
+
+    /**
+     * Sending subtitle.<br>
+     * See: {@link Player#sendTitle(String, String, int, int, int)}
+     *
+     * @param title   title. if you need other Component, use {@link Component#toLegacyText()}.
+     * @param fadeIn  time in ticks for titles to fade in. Defaults to 10.
+     * @param stay    time in ticks for titles to stay. Defaults to 70.
+     * @param fadeOut time in ticks for titles to fade out. Defaults to 20.
+     * @param players target players.
+     * @return for method chain
+     */
+    public Component subtitle(String title, int fadeIn, int stay, int fadeOut, Player... players) {
+        var subtitle = toLegacyText();
+        for (Player player : players) {
+            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
         }
         return this;
     }
@@ -282,11 +413,15 @@ public class Component implements Cloneable {
      * @return legacy text
      */
     public String toLegacyText() {
+        if (legacyText != null) {
+            return legacyText;
+        }
+
         StringBuilder sb = new StringBuilder();
         for (TextComponent component : components) {
             sb.append(component.toLegacyText());
         }
-        return sb.toString();
+        return (legacyText = sb.toString());
     }
 
     /**
