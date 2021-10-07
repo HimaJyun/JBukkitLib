@@ -22,12 +22,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -207,10 +208,10 @@ public class YamlLoader {
                 r.add(mapper.apply(o));
             }
             return r;
+        } else {
+            var t = mapper.apply(v);
+            return t == null ? def : Collections.singletonList(t);
         }
-
-        var t = mapper.apply(v);
-        return t == null ? def : Collections.singletonList(t);
     }
 
     /**
@@ -264,68 +265,138 @@ public class YamlLoader {
     }
 
     /**
-     * Iterates the child elements of the specified ConfigurationSection.
+     * get Enum from String.<br>
+     * Note: this method use {@link String#toUpperCase(Locale)} and {@link Enum#valueOf(Class, String)}.
+     * You must follow standard Java naming conventions. That is, the Enum name must be in uppercase.
      *
-     * @param config   ConfigurationSection
-     * @param consumer The ConfigurationSection of the child element is passed as an argument.
+     * @param type         Enum class.
+     * @param value        String value. nullable, return default value if null.
+     * @param defaultValue default value.
+     * @param <T>          Enum type.
+     * @return if value is null or Enum not found, return default value.
      */
-    public static void section(ConfigurationSection config, Consumer<ConfigurationSection> consumer) {
+    public static <T extends Enum<T>> T getEnum(Class<T> type, String value, T defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        try {
+            return Enum.valueOf(type, value.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ignore) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * get Enum from String.<br>
+     * Note: this method use {@link String#toUpperCase(Locale)} and {@link Enum#valueOf(Class, String)}.
+     * You must follow standard Java naming conventions. That is, the Enum name must be in uppercase.
+     *
+     * @param type  Enum class.
+     * @param value String value. nullable, return null if null.
+     * @param <T>   Enum type.
+     * @return if value is null or Enum not found, return null.
+     */
+    public static <T extends Enum<T>> T getEnum(Class<T> type, String value) {
+        return getEnum(type, value, null);
+    }
+
+    /**
+     * for each child sections.
+     *
+     * @param config   parent section.
+     * @param consumer child consumer.
+     */
+    public static void forEachSection(ConfigurationSection config, Consumer<ConfigurationSection> consumer) {
+        forEachSection(config, (s, c) -> consumer.accept(c));
+    }
+
+    /**
+     * for each child sections.
+     *
+     * @param config   parent section.
+     * @param consumer child consumer. left(String)=child section key, right(ConfigurationSection)=child section.
+     */
+    public static void forEachSection(ConfigurationSection config, BiConsumer<String, ConfigurationSection> consumer) {
         if (config == null) return;
 
         for (String k : config.getKeys(false)) {
             if (config.isConfigurationSection(k)) {
-                consumer.accept(Objects.requireNonNull(config.getConfigurationSection(k)));
+                consumer.accept(k, config.getConfigurationSection(k));
             }
         }
     }
 
     /**
-     * Iterates the child elements of the specified ConfigurationSection.
+     * ConfigurationSection to Map.<br>
+     * Note: this method ignore non ConfigurationSection value.
      *
-     * @param config   ConfigurationSection
-     * @param consumer The key of the child element and the ConfigurationSection passed as an argument are passed.
-     */
-    public static void section(ConfigurationSection config, BiConsumer<String, ConfigurationSection> consumer) {
-        if (config == null) return;
-
-        for (String k : config.getKeys(false)) {
-            consumer.accept(k, config);
-        }
-    }
-
-    /**
-     * Create a Map using the section keys and values.
-     *
-     * @param config ConfigurationSection
-     * @param mapper The ConfigurationSection of the child element is passed as an argument.
-     * @param <E>    Element type
-     * @return Map
+     * @param config parent section.
+     * @param mapper value mapper. ignore if return null.
+     * @param <E>    return map value type.
+     * @return Generated Map, Key is child section key.
      */
     public static <E> Map<String, E> section(ConfigurationSection config, Function<ConfigurationSection, E> mapper) {
-        if (config == null) return Collections.emptyMap();
-
-        Map<String, E> result = new HashMap<>();
-        for (String k : config.getKeys(false)) {
-            if (!config.isConfigurationSection(k)) continue;
-            result.put(k, mapper.apply(Objects.requireNonNull(config.getConfigurationSection(k))));
-        }
-        return result;
+        return section(config, UnaryOperator.identity(), (k, v) -> mapper.apply(v));
     }
 
     /**
-     * Create a Map using the section keys and values.
+     * ConfigurationSection to Map.<br>
+     * Note: this method ignore non ConfigurationSection value.
      *
-     * @param config ConfigurationSection
-     * @param mapper The key of the child element and the ConfigurationSection passed as an argument are passed.
-     * @param <E>    Element type
-     * @return Map
+     * @param config parent section.
+     * @param mapper value mapper. ignore if return null. left(String)=child section key, right(ConfigurationSection)=child section.
+     * @param <E>    return map value type.
+     * @return Generated Map, Key is child section key.
      */
     public static <E> Map<String, E> section(ConfigurationSection config, BiFunction<String, ConfigurationSection, E> mapper) {
+        return section(config, UnaryOperator.identity(), mapper);
+    }
+
+    /**
+     * ConfigurationSection to Map.<br>
+     * Note: this method ignore non ConfigurationSection value.
+     *
+     * @param config      parent section.
+     * @param keyMapper   key mapper. ignore if return null.
+     * @param valueMapper value mapper. ignore if return null.
+     * @param <K>         return map key type.
+     * @param <V>         return map value type.
+     * @return Generated Map.
+     */
+    public static <K, V> Map<K, V> section(ConfigurationSection config, Function<String, K> keyMapper, Function<ConfigurationSection, V> valueMapper) {
+        return section(config, keyMapper, (k, v) -> valueMapper.apply(v));
+    }
+
+    /**
+     * ConfigurationSection to Map.<br>
+     * Note: this method ignore non ConfigurationSection value.
+     *
+     * @param config      parent section.
+     * @param keyMapper   key mapper. ignore if return null.
+     * @param valueMapper value mapper. ignore if return null. left(String)=child section key, right(ConfigurationSection)=child section.
+     * @param <K>         return map key type.
+     * @param <V>         return map value type.
+     * @return Generated Map.
+     */
+    public static <K, V> Map<K, V> section(ConfigurationSection config, Function<String, K> keyMapper, BiFunction<String, ConfigurationSection, V> valueMapper) {
         if (config == null) return Collections.emptyMap();
 
-        Map<String, E> result = new HashMap<>();
-        for (String k : config.getKeys(false)) {
-            result.put(k, mapper.apply(k, config));
+        Map<K, V> result = new HashMap<>();
+        for (String key : config.getKeys(false)) {
+            if (!config.isConfigurationSection(key)) {
+                continue;
+            }
+
+            K k = keyMapper.apply(key);
+            if (k == null) {
+                continue;
+            }
+
+            V v = valueMapper.apply(key, config.getConfigurationSection(key));
+            if (v == null) {
+                continue;
+            }
+            result.put(k, v);
         }
         return result;
     }
